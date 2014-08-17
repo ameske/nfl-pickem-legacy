@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<h3>NFL Schedule - Week {{ week }}</h3>
+<table class="table table-hover">
+  <tr>
+    <th>Away Team</th>
+    <th>Home Team</th>
+    <th>Time</th>
+  </tr>
+  {% for game in games %}
+  <tr>
+    <td>{{ game.away_team.city}} {{ game.away_team.nickname }}</td>
+    <td>{{ game.home_team.city}} {{ game.home_team.nickname }}</td>
+    <td>{{ game.date }}</td>
+  </tr>
+  {% endfor %}
+  </table>
+{% endblock %}
+

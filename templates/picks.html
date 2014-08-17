@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+{% if picks %}
+  {% for pick in picks %}
+  <div class="row">
+    <div class="col-md-12" style="border:2px solid black">
+      <form role="form">
+        <fieldset>
+          <legend>{{ pick.game.date }}</legend>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="radio-inline">
+                  <input type="radio" name="{{ pick.game.id }}" id="{{ pick.game.id }}" value="{{ pick.game.away_team_id }}">
+                  {{ pick.game.away_team.city }} {{ pick.game.away_team.nickname }}
+                </label>
+              </div>
+              <div class="form-group">
+                <label class="radio-inline">
+                  <input type="radio" name="{{ pick.game.id }}" id="{{ pick.game.id }}" value="{{ pick.game.home_team_id }}">
+                  {{ pick.game.home_team.city }} {{ pick.game.home_team.nickname }}
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <select class="form-control" id="{{ pick.game.id }}">
+                <option>1</option>
+                <option>3</option>
+                <option>5</option>
+                <option>7</option>
+              </select>
+            </div>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <h1>You have no picks to make at this time!</h1>
+{% endif %}  
+{% endblock %}
