@@ -1,24 +1,24 @@
 '''
-season_setup.py
+scrapeSchedule.py
 
 Parses the DOM of www.nfl.com/schedules to load the database with the
 matchups for the current season.
 
 Work required each season:
   1. Update 'schedule_url' to the current root URL for the NFL's schedules.
-  2. Update the 'week_types' to account for variability in the NFL schedule.
-  3. You probably should also make sure the DOM hasn't changed. The NFL loves to do that.
+  2. Change the parameter to scrape() to the current year
+  3. Change the file name to the current year
 
 @author: Kyle Ames
-@date: May 16, 2014
+@date: August 17, 2014
 '''
 from bs4 import BeautifulSoup
 import urllib2
 import datetime
 import re
+import json
 
-week_types = {1: 'A', 2: 'A', 3:'A', 4:'B', 5:'C', 6:'B', 7:'B', 8:'C', 9:'C', 10:'C', 11:'B', 12:'C', 13:'A', 14:'A', 15:'A', 16:'A', 17:'A' }
-schedule_url = 'http://www.nfl.com/schedules/2013/REG'
+schedule_url = 'http://www.nfl.com/schedules/2014/REG'
 
 def is_away_team(css_class):
   return css_class == "team-name away lost" or css_class == "team-name away "
@@ -26,15 +26,14 @@ def is_away_team(css_class):
 def is_home_team(css_class):
   return css_class == "team-name home lost" or css_class == "team-name home "
 
-def load_schedule():
-    for week_no in range(17, 18):
+def scrape(year):
+    games = []
+
+    for week_no in range(1, 18):
         
         # OPEN UP THE HTML FOR EACH WEEK
-#        print 'Current Week: ' + str(week_no) 
-#        page = urllib2.urlopen(schedule_url + str(week_no))
-#        scheduleHTML = BeautifulSoup(page.read())
-
-        page = open('week1.html')
+        print 'Scraping Week: ' + str(week_no) 
+        page = urllib2.urlopen(schedule_url + str(week_no))
         scheduleHTML = BeautifulSoup(page.read())
         
         # PARALLEL LISTS OF AWAY, HOME, TIME
@@ -50,13 +49,26 @@ def load_schedule():
         dates       = [ dt[0] + " 2013 " + dt[1] + " PM EST" for dt in dates_times]
         datetimes = [ datetime.datetime.strptime(date_string, '%A %B %d %Y %I:%M %p %Z') for date_string in dates ]
         
-        # CREATE MATCHUP TUPLES AND THEN SEND THEM TO THE LOADING FUNCTION
+        # CREATE MATCHUP TUPLES AND CONVERT THEM INTO A DICTIONARY FOR JSON
         matchups = zip(away_teams, home_teams, datetimes)      
         for matchup in matchups:
-          print matchup            
+            print matchup
+            d = {
+                    "year": year,
+                    "week": week_no,
+                    "away": matchup[0],
+                    "home": matchup[1],
+                    "date": matchup[2].isoformat(),
+            }
+            games.append(d)
+
+    return games
 
 def main():
-    load_schedule()
+    schedule = scrape(2014)
+    fd = open('2014.json', 'w')
+    fd.write(json.dumps(schedule)) 
+    fd.close()
     
 if __name__=='__main__':
     main()
