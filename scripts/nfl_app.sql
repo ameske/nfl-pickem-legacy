@@ -2,25 +2,25 @@
 * Database definition script for nfl_app
 *
 * Author: Kyle Ames
-* Last Updated: August 17, 2014
+* Last Updated: September 7, 2014
 */
 
-/* Clean up existing database if needed */
-CREATE DATABASE IF NOT EXISTS nfl WITH OWNER nfl_app;
+CREATE DATABASE nfl_app WITH OWNER nfl;
+\c nfl_app;
 
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     first_name text NOT NULL,
     last_name text NOT NULL,
-    email text NOT NULL,
+    email text NOT NULL UNIQUE,
     admin boolean NOT NULL DEFAULT FALSE,
-    last_login timestamp,
+    last_login integer,
     password text NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS pvs (
     id SERIAL PRIMARY KEY,
-    type varchar(1) NOT NULL,
+    type varchar(1) NOT NULL UNIQUE,
     seven integer NOT NULL,
     five integer NOT NULL,
     three integer NOT NULL,
@@ -36,13 +36,14 @@ CREATE TABLE IF NOT EXISTS teams (
 
 CREATE TABLE IF NOT EXISTS years (
     id SERIAL PRIMARY KEY,
-    year integer NOT NULL
+    year integer NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS weeks (
     id SERIAL PRIMARY KEY,
     year_id integer REFERENCES years ON DELETE CASCADE,
-    pvs_id integer REFERENCES pvs
+    pvs_id integer REFERENCES pvs,
+    week integer NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS games (
@@ -63,3 +64,11 @@ CREATE TABLE IF NOT EXISTS picks (
     points integer DEFAULT 0, 
     correct boolean
 );
+
+ALTER TABLE picks OWNER TO nfl;
+ALTER TABLE games OWNER TO nfl;
+ALTER TABLE years OWNER TO nfl;
+ALTER TABLE weeks OWNER TO nfl;
+ALTER TABLE teams OWNER TO nfl;
+ALTER TABLE users OWNER TO nfl;
+ALTER TABLE pvs OWNER TO nfl;
