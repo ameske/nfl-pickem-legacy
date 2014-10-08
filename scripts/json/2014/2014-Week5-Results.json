@@ -1,0 +1,107 @@
+[
+    {
+        "week": 5,
+        "home": "Packers",
+        "away_score": "10",
+        "home_score": "42",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Panthers",
+        "away_score": "24",
+        "home_score": "31",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Titans",
+        "away_score": "29",
+        "home_score": "28",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Eagles",
+        "away_score": "28",
+        "home_score": "34",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Giants",
+        "away_score": "20",
+        "home_score": "30",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Saints",
+        "away_score": "31",
+        "home_score": "37",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Cowboys",
+        "away_score": "17",
+        "home_score": "20",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Lions",
+        "away_score": "17",
+        "home_score": "14",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Colts",
+        "away_score": "13",
+        "home_score": "20",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Jaguars",
+        "away_score": "17",
+        "home_score": "09",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Broncos",
+        "away_score": "20",
+        "home_score": "41",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "49ers",
+        "away_score": "17",
+        "home_score": "22",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Chargers",
+        "away_score": "00",
+        "home_score": "31",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Patriots",
+        "away_score": "17",
+        "home_score": "43",
+        "year": 2014
+    },
+    {
+        "week": 5,
+        "home": "Redskins",
+        "away_score": "27",
+        "home_score": "17",
+        "year": 2014
+    }
+]
