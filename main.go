@@ -2,19 +2,20 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 )
 
 func main() {
 	//db := database.NflDb()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", Login).Methods("POST", "GET")
+	r.HandleFunc("/", LoginGet).Methods("GET")
+	r.HandleFunc("/", LoginPost).Methods("POST")
 	r.HandleFunc("/state", State).Methods("GET")
 	r.HandleFunc("/logout", Logout).Methods("POST")
 
@@ -27,7 +28,7 @@ const (
 	password = "password"
 )
 
-var s = securecookie.New(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32))
+var store = sessions.NewCookieStore(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32))
 
 const loginPage = `
 <h1>Login</h1>
@@ -40,63 +41,65 @@ const loginPage = `
 </form>
 `
 
-func Login(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		w.Write([]byte(loginPage))
-		return
-	}
+const stateLoggedIn = `
+<h1>State</h1>
+You are logged in
+<form method="post" action="/logout">
+  <button type="submit">Logout</button>
+</form>
+`
 
+const stateLoggedOut = `
+<h1>State</h1>
+You are logged out
+<form method="get" action="/">
+  <button type="submit">Log Me In</button>
+</form>
+`
+
+func LoginGet(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "LoginState")
+
+	// Check for our logged in status
+	if session.Values["status"] == "loggedin" {
+		http.Redirect(w, r, "/state", 302)
+	} else {
+		w.Write([]byte(loginPage))
+	}
+}
+
+func LoginPost(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	u := r.FormValue("username")
 	p := r.FormValue("password")
-
 	if u != username || p != password {
 		http.Error(w, "Invalid username and password", http.StatusUnauthorized)
 		return
 	}
 
-	// For now just store the username, later we'll chain this to a session with a
-	// secret value
-	value := map[string]string{
-		"username": u,
-	}
+	session, _ := store.Get(r, "LoginState")
+	session.Values["status"] = "loggedin"
+	session.Save(r, w)
 
-	if encoded, err := s.Encode("LoginState", value); err == nil {
-		cookie := &http.Cookie{
-			Name:  "LoginState",
-			Value: encoded,
-			Path:  "/",
-		}
-		http.SetCookie(w, cookie)
-	}
-
-	w.Write([]byte("You have successfully logged in!"))
+	http.Redirect(w, r, "/state", 302)
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	cookie := &http.Cookie{
-		Name:   "LoginState",
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-	}
-	http.SetCookie(w, cookie)
+	session, _ := store.Get(r, "LoginState")
+	delete(session.Values, "status")
+	session.Save(r, w)
+	http.Redirect(w, r, "/state", http.StatusSeeOther)
 }
 
 func State(w http.ResponseWriter, r *http.Request) {
-	// For now, just check if the cookie exists. Later we will check a session to see
-	// if the secret value is set.
-	if cookie, err := r.Cookie("LoginState"); err == nil {
-		value := make(map[string]string)
-		if err = s.Decode("LoginState", cookie.Value, &value); err == nil {
-			fmt.Printf("Yay! COOKIE! It contains: %s", value["username"])
-			w.Write([]byte("Yes, you are logged in"))
-			return
-		}
-	}
+	// Check for an existing session, if none exists prompt for login
+	session, _ := store.Get(r, "LoginState")
 
-	w.Write([]byte("You don't appear to be logged in"))
-	return
+	if session.Values["status"] == "loggedin" {
+		w.Write([]byte(stateLoggedIn))
+	} else {
+		w.Write([]byte(stateLoggedOut))
+	}
 }
 
 func writeJsonResponse(w http.ResponseWriter, r interface{}) {
