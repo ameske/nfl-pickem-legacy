@@ -2,113 +2,113 @@
     {
         "week": 3,
         "home": "Falcons",
-        "away_score": "14",
-        "home_score": "56",
+        "away_score": 14,
+        "home_score": 56,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Bills",
-        "away_score": "22",
-        "home_score": "10",
+        "away_score": 22,
+        "home_score": 10,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Rams",
-        "away_score": "34",
-        "home_score": "31",
+        "away_score": 34,
+        "home_score": 31,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Eagles",
-        "away_score": "34",
-        "home_score": "37",
+        "away_score": 34,
+        "home_score": 37,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Giants",
-        "away_score": "17",
-        "home_score": "30",
+        "away_score": 17,
+        "home_score": 30,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Saints",
-        "away_score": "09",
-        "home_score": "20",
+        "away_score": 9,
+        "home_score": 20,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Bengals",
-        "away_score": "07",
-        "home_score": "33",
+        "away_score": 7,
+        "home_score": 33,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Browns",
-        "away_score": "23",
-        "home_score": "21",
+        "away_score": 23,
+        "home_score": 21,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Lions",
-        "away_score": "07",
-        "home_score": "19",
+        "away_score": 7,
+        "home_score": 19,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Jaguars",
-        "away_score": "44",
-        "home_score": "17",
+        "away_score": 44,
+        "home_score": 17,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Patriots",
-        "away_score": "09",
-        "home_score": "16",
+        "away_score": 9,
+        "home_score": 16,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Cardinals",
-        "away_score": "14",
-        "home_score": "23",
+        "away_score": 14,
+        "home_score": 23,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Seahawks",
-        "away_score": "20",
-        "home_score": "26",
+        "away_score": 20,
+        "home_score": 26,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Dolphins",
-        "away_score": "34",
-        "home_score": "15",
+        "away_score": 34,
+        "home_score": 15,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Panthers",
-        "away_score": "37",
-        "home_score": "19",
+        "away_score": 37,
+        "home_score": 19,
         "year": 2014
     },
     {
         "week": 3,
         "home": "Jets",
-        "away_score": "27",
-        "home_score": "19",
+        "away_score": 27,
+        "home_score": 19,
         "year": 2014
     }
 ]

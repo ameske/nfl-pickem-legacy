@@ -2,92 +2,92 @@
     {
         "week": 4,
         "home": "Redskins",
-        "away_score": "45",
-        "home_score": "14",
+        "away_score": 45,
+        "home_score": 14,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Bears",
-        "away_score": "38",
-        "home_score": "17",
+        "away_score": 38,
+        "home_score": 17,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Texans",
-        "away_score": "17",
-        "home_score": "23",
+        "away_score": 17,
+        "home_score": 23,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Colts",
-        "away_score": "17",
-        "home_score": "41",
+        "away_score": 17,
+        "home_score": 41,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Ravens",
-        "away_score": "10",
-        "home_score": "38",
+        "away_score": 10,
+        "home_score": 38,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Jets",
-        "away_score": "24",
-        "home_score": "17",
+        "away_score": 24,
+        "home_score": 17,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Steelers",
-        "away_score": "27",
-        "home_score": "24",
+        "away_score": 27,
+        "home_score": 24,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Raiders",
-        "away_score": "38",
-        "home_score": "14",
+        "away_score": 38,
+        "home_score": 14,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Chargers",
-        "away_score": "14",
-        "home_score": "33",
+        "away_score": 14,
+        "home_score": 33,
         "year": 2014
     },
     {
         "week": 4,
         "home": "49ers",
-        "away_score": "21",
-        "home_score": "26",
+        "away_score": 21,
+        "home_score": 26,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Vikings",
-        "away_score": "28",
-        "home_score": "41",
+        "away_score": 28,
+        "home_score": 41,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Cowboys",
-        "away_score": "17",
-        "home_score": "38",
+        "away_score": 17,
+        "home_score": 38,
         "year": 2014
     },
     {
         "week": 4,
         "home": "Chiefs",
-        "away_score": "14",
-        "home_score": "41",
+        "away_score": 14,
+        "home_score": 41,
         "year": 2014
     }
 ]

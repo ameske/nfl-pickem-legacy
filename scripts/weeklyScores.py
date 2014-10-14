@@ -10,10 +10,11 @@ Scrapes the NFL's website to pull the reults from the given year and week's game
 from bs4 import BeautifulSoup
 import urllib2
 import json
+import sys
 
 schedule_url = 'http://www.nfl.com/schedules/2014/REG'
-year = 2014
-week = 5
+year = -1
+week = -1
 
 def home_team(tag):
     return tag.has_attr('class') and "team-name" in tag['class'] and "home" in tag['class']
@@ -45,14 +46,16 @@ def get_results(year, week_no):
                 "year": year,
                 "week": week_no,
                 "home": result[0],
-                "home_score": result[1],
-                "away_score": result[2],
+                "home_score": int(result[1]),
+                "away_score": int(result[2]),
         }                
         games.append(d)
                 
     return games
 
 def main():
+  year = int(sys.argv[1])
+  week = int(sys.argv[2])
   results = get_results(int(year), int(week))
   fd = open('{0}-Week{1}-Results.json'.format(year, week), 'w')
   fd.write(json.dumps(results, indent=4, separators=(',', ': ')))
