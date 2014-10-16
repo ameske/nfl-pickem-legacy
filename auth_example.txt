@@ -2,10 +2,19 @@ package main
 
 import (
 	"fmt"
-	"html/template"
-	"log"
 	"net/http"
 )
+
+const loginPage = `
+<h1>Login</h1>
+<form method="post" action="/">
+    <label for="name">User name</label>
+    <input type="text" id="username" name="username">
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password">
+    <button type="submit">Login</button>
+</form>
+`
 
 const stateLoggedIn = `
 <h1>State</h1>
@@ -24,16 +33,13 @@ You are logged out
 `
 
 func LoginGet(w http.ResponseWriter, r *http.Request) {
-	// Check to see if we have a valid existing session
 	session, _ := store.Get(r, "LoginState")
+
+	// Check for our logged in status
 	if session.Values["status"] == "loggedin" {
 		http.Redirect(w, r, "/state", 302)
 	} else {
-		t, err := template.ParseFiles("templates/_base.html", "templates/navbar.html", "templates/login.html")
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-		t.Execute(w, nil)
+		w.Write([]byte(loginPage))
 	}
 }
 
