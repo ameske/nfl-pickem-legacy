@@ -1,9 +1,0 @@
-{% extends 'layout.html' %}
-
-{% block content %}
-<ul>
-  {% for year in years %}
-  <li><a href="{{ url_for('year_schedule', year=year.year) }}">{{ year.year }}</a></li>
-  {% endfor %}
-</ul>
-{% endblock %}

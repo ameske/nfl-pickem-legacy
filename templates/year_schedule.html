@@ -1,9 +1,0 @@
-{% extends 'layout.html' %}
-
-{% block content %}
-<ul>
-  {% for week in weeks %}
-  <li><a href='{{ url_for('week_schedule', week=week.week, year=year) }}'>Week {{ week.week }}</a></li>
-  {% endfor %}
-</ul>
-{% endblock %}

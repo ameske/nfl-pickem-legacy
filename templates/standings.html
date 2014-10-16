@@ -1,4 +1,22 @@
-{% extends 'layout.html' %}
-{% block content %}
-Stub for standings page
-{% endblock %}
+{{define "title"}}Standings{{end}}
+
+{{define "content"}}
+		<div class="container">
+
+			<!-- Standings Table -->
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>Participant</th>
+						<th>Total Points</th>
+						<th>Adjusted Points</th>
+						<th>Record</th>
+						<th>Percentage</th>
+						<th>Week Wins</th>
+						<th>Points Back</th>
+					</tr>
+				</thead>
+
+			</table>
+		</div>
+{{end}}
