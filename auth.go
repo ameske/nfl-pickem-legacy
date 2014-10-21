@@ -5,6 +5,10 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"code.google.com/p/go.crypto/bcrypt"
+
+	"github.com/ameske/go_nfl/database"
 )
 
 const stateLoggedIn = `
@@ -22,6 +26,15 @@ You are logged out
   <button type="submit">Log Me In</button>
 </form>
 `
+
+func CheckCredentials(user string, password string) bool {
+	var u database.Users
+	_ = db.SelectOne(&u, "SELECT * FROM users WHERE email = $1", user)
+
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+
+	return err == nil
+}
 
 func LoginGet(w http.ResponseWriter, r *http.Request) {
 	// Check to see if we have a valid existing session
@@ -41,7 +54,7 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	u := r.FormValue("username")
 	p := r.FormValue("password")
-	if u != username || p != password {
+	if !CheckCredentials(u, p) {
 		http.Error(w, "Invalid username and password", http.StatusUnauthorized)
 		return
 	}
