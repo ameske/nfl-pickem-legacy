@@ -31,7 +31,7 @@ func Fetch(name string) *template.Template {
 	}
 
 	t := template.New("_base.html").Funcs(funcs)
-	t = template.Must(t.ParseFiles("templates/_base.html", filepath.Join("templates", name)))
+	t = template.Must(t.ParseFiles("templates/_base.html", "templates/navbar.html", filepath.Join("templates", name)))
 	cache[name] = t
 
 	return t

@@ -21,17 +21,7 @@ func checkCredentials(user string, password string) bool {
 }
 
 func LoginForm(w http.ResponseWriter, r *http.Request) {
-	// Check to see if we have a valid existing session
-	session, _ := store.Get(r, "LoginState")
-	if session.Values["status"] == "valid" {
-		http.Redirect(w, r, "/state", 302)
-	} else {
-		t, err := template.ParseFiles("templates/_base.html", "templates/navbar.html", "templates/login.html")
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-		t.Execute(w, nil)
-	}
+	Fetch("login.html").Execute(w, nil)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
