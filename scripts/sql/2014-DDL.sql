@@ -1,3 +1,4 @@
+\c nfl_app;
 INSERT INTO years (year) VALUES (2014);
 
 INSERT INTO pvs (type, seven, five, three, one) VALUES ('A', 1, 2, 5, 8);

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_name text NOT NULL,
     email text NOT NULL UNIQUE,
     admin boolean NOT NULL DEFAULT FALSE,
-    last_login integer,
+    last_login timestamp,
     password text NOT NULL
 );
 
