@@ -25,7 +25,7 @@ func main() {
 	games := make([]*GameJson, 0)
 
 	// Open the 2014 schedule, and parse the json into our golang struct
-	bytes, err := ioutil.ReadFile("2014-Schedule.json")
+	bytes, err := ioutil.ReadFile("json/2014/2014-Schedule.json")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}

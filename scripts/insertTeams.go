@@ -22,7 +22,7 @@ func main() {
 	db := initDb()
 
 	// Open the file containing team info and wrap it in scanner
-	teamData, err := os.Open("teams.txt")
+	teamData, err := os.Open("sql/teams.txt")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -47,7 +47,7 @@ func main() {
 }
 
 func initDb() *gorp.DbMap {
-	db, err := sql.Open("postgres", "user=nfl database=nfl_app sslmode=disable")
+	db, err := sql.Open("postgres", "host=/run/postgresql user=nfl dbname=nfl_app sslmode=disable")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}

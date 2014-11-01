@@ -8,7 +8,7 @@ import (
 )
 
 func NflDb() *gorp.DbMap {
-	db, err := sql.Open("postgres", "user=nfl database=nfl_app sslmode=disable")
+	db, err := sql.Open("postgres", "host=/run/postgresql user=nfl database=nfl_app sslmode=disable")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
