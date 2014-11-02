@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/coopernurse/gorp"
+	_ "github.com/lib/pq"
 )
 
 func NflDb() *gorp.DbMap {
