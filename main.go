@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/ameske/go_nfl/database"
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
@@ -21,12 +23,15 @@ var (
 func init() {
 	router.HandleFunc("/", Index).Methods("GET").Name("Index")
 	router.HandleFunc("/login", LoginForm).Methods("GET").Name("LoginForm")
-	router.HandleFunc("/login", Login).Methods("POST").Name("Login")
-	router.HandleFunc("/logout", Logout).Methods("POST").Name("Logout")
+	router.HandleFunc("/login", Login).Methods("POST")
+	router.HandleFunc("/logout", Logout).Methods("POST")
 	router.Handle("/picks", Protect(Picks)).Methods("GET").Name("Picks")
+	router.HandleFunc("/changePassword", ChangePasswordForm).Methods("GET").Name("ChangePasswordForm")
+	router.HandleFunc("/changePassowrd", ChangePassword).Methods("POST")
 }
 
 func main() {
+	log.Printf("NFL Pick-Em Pool listening on port 61389")
 	log.Fatal(http.ListenAndServe(":61389", router))
 }
 
@@ -41,5 +46,11 @@ func writeJsonResponse(w http.ResponseWriter, r interface{}) {
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	t := Fetch("index.html")
-	t.Execute(w, nil)
+	userId := context.Get(r, "userId")
+
+	if userId == nil {
+		t.Execute(w, "Random Person")
+	} else {
+		t.Execute(w, fmt.Sprintf("%d", userId.(int64)))
+	}
 }
