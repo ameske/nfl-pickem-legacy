@@ -1,43 +1,37 @@
-{{define "title"}}Make Picks{{end}}
+{{define "title"}}Picks{{end}}
 
 {{define "content"}}
-		<div class="container">
-
-			{{range .picks}}
-			<div class="row">
-				<div class="col-md-12" style="border:2px solid black">
-					<form role="form">
-						<fieldset>
-							<legend>September 24, 2014</legend>
-							<div class="row">
-								<div class="col-md-6">
-									<div class="form-group">
-										<label class="radio-inline">
-											<input type="radio" name=“1” id=“1” value=“0”>
-											James Madison Dukes
-										</label>
-									</div>
-									<div class="form-group">
-										<label class="radio-inline">
-											<input type="radio" name=“1” id=“1” value=“1”>
-											Delaware Blue Hens
-										</label>
-									</div>
-								</div>
-								<div class="col-md-6">
-									<select class="form-control" id=“1”>
-										<option>1</option>
-										<option>3</option>
-										<option>5</option>
-										<option>7</option>
-									</select>
-								</div>
-							</div>
-						</fieldset>
-					</form>
-				</div>
-			</div>
-			{{end}}
-
-		</div> <!-- /container -->
+<div class="container">
+  <form role="form" method="post" action="/picks">
+    <table class="table table-striped">
+      <tr>
+        <th>Game Time</th>
+        <th>Away</th>
+        <th>Home</th>
+        <th>Selection</th>
+        <th>Points</th>
+      </tr>
+      {{range .Games}}
+      <tr>
+        <td>{{.Time}}</td>
+        <td>{{.Away}} {{.AwayNick}}</td>
+        <td>{{.Home}} {{.HomeNick}}</td>
+        <td>
+          <select class="form-control" name="{{.Id}}">
+            <option value="{{.AwayId}}">{{.Away}}</option>
+            <option value="{{.HomeId}}">{{.Home}}</option>
+          </select></td>
+        <td>
+          <select class="form-control">
+            <option value="1">1</option>
+            <option value="3">3</option>
+            <option value="5">5</option>
+            <option value="7">7</option>
+          </select></td>
+      </tr>
+      {{end}}
+    </table>
+    <button type="submit" class="btn btn-default">Submit Picks</button>
+  </form>
+</div> <!-- /container -->
 {{end}}
