@@ -19,6 +19,16 @@ type Users struct {
 	Password  string    `db:"password"`
 }
 
+func UserId(db *gorp.DbMap, username string) int64 {
+	var userId int64
+	err := db.SelectOne(&userId, "SELECT id FROM users WHERE email = $1", username)
+	if err != nil {
+		log.Fatalf("UserId: %s", err.Error())
+	}
+
+	return userId
+}
+
 func CheckCredentials(db *gorp.DbMap, user string, password string) bool {
 	var u Users
 

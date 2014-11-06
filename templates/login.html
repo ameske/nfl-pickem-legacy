@@ -2,8 +2,8 @@
 
 {{define "content"}}
 <div class="container">
-  <p class="text-danger">{{.}}</p>
-  <form role="form" action="/login" method="post">
+    <p class="text-danger">{{index . 0}}
+    <form role="form" action="{{index . 1}}" method="post">
           <div class="form-group">
                   <label for="inputUsername">Username</label>
                   <input type="text" class="form-control" id="username" name="username" placeholder="Enter Username">

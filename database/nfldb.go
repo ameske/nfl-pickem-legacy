@@ -27,7 +27,7 @@ func NflDb() *gorp.DbMap {
 	dbmap.AddTableWithName(Weeks{}, "weeks").SetKeys(true, "Id")
 	dbmap.AddTableWithName(Games{}, "games").SetKeys(true, "Id")
 	dbmap.AddTableWithName(Picks{}, "picks").SetKeys(true, "Id")
+	dbmap.AddTableWithName(Standings{}, "standings").SetKeys(true, "Id")
 
 	return dbmap
-
 }
