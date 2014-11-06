@@ -17,8 +17,8 @@ type Picks struct {
 	Correct   bool  `db:"correct"`
 }
 
-// FormGame contains the information required to populate a picks HTML form
-type FormGame struct {
+//FormPick contains the information required to populate a picks HTML Form
+type FormPick struct {
 	Id       int64
 	Time     time.Time
 	Away     string
@@ -29,17 +29,42 @@ type FormGame struct {
 	HomeId   int64
 }
 
-// GetWeeklyPicks constructs an array of FormPicks for a given user and week which will be used to construct the picks html
-func GetWeeklyPicks(db *gorp.DbMap, userId int64, year int, week int) []FormGame {
+// GameResult is a struct representing the join of the Games and Picks table, used for
+// displaying a user's scored picks
+type GameResult struct {
+	Games
+	Picks
+}
+
+// WeeklyResults gathers the information needed to display a user's results for the given week
+func WeeklyResults(db *gorp.DbMap, userId int64, year, week int) (results []GameResult) {
+	weekId := WeekId(db, year, week)
+	_, err := db.Select(&results, "SELECT * FROM games JOIN picks ON picks.game_id = games.id WHERE user_id = $1 AND games.week_id = $2", userId, weekId)
+	if err != nil {
+		log.Fatalf("WeeklyResults: %s", err.Error())
+	}
+
+	return
+}
+
+// WeeklyPicks creates a []Picks representing a user's picks for the given week
+func WeeklyPicks(db *gorp.DbMap, userId int64, year int, week int) (picks []Picks) {
 	weekId := WeekId(db, year, week)
 
-	var picks []Picks
 	_, err := db.Select(&picks, "SELECT picks.* FROM picks join games ON picks.game_id = games.id WHERE games.week_id = $1 AND picks.user_id = $2", weekId, userId)
 	if err != nil {
 		log.Fatalf("GetWeeklyPicks: %s", err.Error())
 	}
 
-	formGames := make([]FormGame, 0)
+	return
+}
+
+// FormPicks gathers the neccessary information needed render a user's pick-em form
+func FormPicks(db *gorp.DbMap, username string, year int, week int) []FormPick {
+	userId := UserId(db, username)
+
+	picks := WeeklyPicks(db, userId, year, week)
+	formGames := make([]FormPick, 0)
 	for _, p := range picks {
 		// Lookup the game information
 		var g Games
@@ -59,8 +84,8 @@ func GetWeeklyPicks(db *gorp.DbMap, userId int64, year int, week int) []FormGame
 			log.Fatalf("GetWeeklyPicks: %s", err.Error())
 		}
 
-		// Construct the FormGame
-		f := FormGame{
+		// Construct the FormPick
+		f := FormPick{
 			Id:       p.Id,
 			Time:     g.Date,
 			Away:     a.City,

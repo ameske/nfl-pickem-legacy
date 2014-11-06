@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/ameske/go_nfl/database"
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
@@ -46,11 +45,13 @@ func writeJsonResponse(w http.ResponseWriter, r interface{}) {
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	t := Fetch("index.html")
-	userId := context.Get(r, "userId")
 
-	if userId == nil {
+	session, _ := store.Get(r, "LoginState")
+	user := session.Values["user"]
+
+	if user == nil || user == "" {
 		t.Execute(w, "Random Person")
 	} else {
-		t.Execute(w, fmt.Sprintf("%d", userId.(int64)))
+		t.Execute(w, fmt.Sprintf("%s", user))
 	}
 }

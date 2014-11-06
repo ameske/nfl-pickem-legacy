@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/base64"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -11,41 +13,49 @@ import (
 )
 
 func LoginForm(w http.ResponseWriter, r *http.Request) {
-	Fetch("login.html").Execute(w, nil)
+	n := context.Get(r, "next")
+
+	if n == nil {
+		log.Printf("User did not specify a next endpoint.")
+		Fetch("login.html").Execute(w, []string{"", "/login"})
+	} else {
+		next := n.(string)
+		log.Printf("User wishes to go to %s after login", next)
+		next64 := base64.StdEncoding.EncodeToString([]byte(next))
+		Fetch("login.html").Execute(w, []string{"", fmt.Sprintf("/login?next=%s", string(next64))})
+	}
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
+	next := r.FormValue("next")
 
 	// Attempt login, taking the user back to the login page with an error message if failed
 	u := r.FormValue("username")
 	p := r.FormValue("password")
 	if !database.CheckCredentials(db, u, p) {
-		t := Fetch("login.html")
-		t.Execute(w, "Invalid username or password.")
+		if next == "" {
+			Fetch("login.html").Execute(w, []string{"Invalid username or password.", "/login"})
+		} else {
+			Fetch("login.html").Execute(w, []string{"Invalid username of password.", fmt.Sprintf("/login?next=%s", next)})
+		}
 		return
 	}
 
 	// Set session information
 	session, _ := store.Get(r, "LoginState")
 	session.Values["status"] = "loggedin"
-	session.Values["username"] = u
+	session.Values["user"] = u
 	session.Save(r, w)
 
-	// Redirect to where they intended to go, or the home page if they explicitly were logging in
-	n := context.Get(r, "next")
-	if n == nil {
+	if next == "" {
 		http.Redirect(w, r, "/", 302)
-		return
-	}
-
-	next := n.(string)
-	if next == "/login" {
-		http.Redirect(w, r, "/", 302)
-		return
 	} else {
-		http.Redirect(w, r, next, 302)
-		return
+		n, err := base64.StdEncoding.DecodeString(next)
+		if err != nil {
+			log.Fatalf("Decoding next paramter: %s", err.Error())
+		}
+		http.Redirect(w, r, string(n), 302)
 	}
 }
 
@@ -58,7 +68,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func ChangePasswordForm(w http.ResponseWriter, r *http.Request) {
-	t := Fetch("passwordChange.html").Execute(w, cpm{})
+	Fetch("passwordChange.html").Execute(w, cpm{})
 }
 
 type cpm struct {
@@ -76,7 +86,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	// Check that this user is actually who they claim they are
 	if !database.CheckCredentials(db, u, p) {
-		t := Fetch("passwordChange.html").Execute(w, "Invalid username or password.")
+		Fetch("passwordChange.html").Execute(w, "Invalid username or password.")
 		return
 	}
 
@@ -85,7 +95,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		m := cpm{
 			Error: "Passwords do not match.",
 		}
-		t := Fetch("passwordChange.html").Execute(w, m)
+		Fetch("passwordChange.html").Execute(w, m)
 	}
 
 	bpass, err := bcrypt.GenerateFromPassword([]byte(pN), bcrypt.DefaultCost)
@@ -98,5 +108,5 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	m := cpm{
 		Success: "Password succesfully update!",
 	}
-	t := Fetch("passwordChange.html").Execute(w, m)
+	Fetch("passwordChange.html").Execute(w, m)
 }
