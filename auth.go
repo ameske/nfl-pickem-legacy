@@ -18,12 +18,12 @@ func LoginForm(w http.ResponseWriter, r *http.Request) {
 	n := context.Get(r, "next")
 	if n == nil {
 		log.Printf("User did not specify a next endpoint.")
-		Fetch("login.html").Execute(w, []string{"", "/login"})
+		Fetch("login.html").Execute(w, "", []string{"", "/login"})
 	} else {
 		next := n.(string)
 		log.Printf("User wishes to go to %s after login", next)
 		next64 := base64.StdEncoding.EncodeToString([]byte(next))
-		Fetch("login.html").Execute(w, []string{"", fmt.Sprintf("/login?next=%s", string(next64))})
+		Fetch("login.html").Execute(w, "", []string{"", fmt.Sprintf("/login?next=%s", string(next64))})
 	}
 }
 
@@ -39,9 +39,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	p := r.FormValue("password")
 	if !database.CheckCredentials(db, u, p) {
 		if next == "" {
-			Fetch("login.html").Execute(w, []string{"Invalid username or password.", "/login"})
+			Fetch("login.html").Execute(w, "", []string{"Invalid username or password.", "/login"})
 		} else {
-			Fetch("login.html").Execute(w, []string{"Invalid username of password.", fmt.Sprintf("/login?next=%s", next)})
+			Fetch("login.html").Execute(w, "", []string{"Invalid username of password.", fmt.Sprintf("/login?next=%s", next)})
 		}
 		return
 	}
@@ -81,27 +81,30 @@ type m struct {
 
 // ChangePasswordForm renders the change password template.
 func ChangePasswordForm(w http.ResponseWriter, r *http.Request) {
-	Fetch("passwordChange.html").Execute(w, m{})
+	session, _ := store.Get(r, "LoginState")
+	u := session.Values["user"].(string)
+	Fetch("passwordChange.html").Execute(w, u, m{})
 }
 
 // ChangePassword processes the password change form, informing the user of any problems or success.
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
+	session, _ := store.Get(r, "LoginState")
+	u := session.Values["user"].(string)
 
-	u := r.FormValue("username")
 	p := r.FormValue("oldPassword")
 	pN := r.FormValue("newPassword")
 	pNC := r.FormValue("confirmNewPassword")
 
 	// Check that this user is actually who they claim they are
 	if !database.CheckCredentials(db, u, p) {
-		Fetch("passwordChange.html").Execute(w, m{Error: "Invalid username or password"})
+		Fetch("passwordChange.html").Execute(w, u, m{Error: "Invalid username or password"})
 		return
 	}
 
 	// Make sure the user REALLY knows their new password and it isn't empty
 	if pN != pNC || pN == "" {
-		Fetch("passwordChange.html").Execute(w, m{Error: "Passwords do not match."})
+		Fetch("passwordChange.html").Execute(w, u, m{Error: "Passwords do not match."})
 	}
 
 	// Perform the password update
@@ -111,5 +114,5 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 	database.UpdatePassword(db, u, bpass)
 
-	Fetch("passwordChange.html").Execute(w, m{Success: "Password updated successfully."})
+	Fetch("passwordChange.html").Execute(w, u, m{Success: "Password updated successfully."})
 }

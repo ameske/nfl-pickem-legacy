@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"io"
 	"log"
 	"path/filepath"
 	"sync"
@@ -20,21 +21,37 @@ var funcs = template.FuncMap{
 	"reverse": reverse,
 }
 
+type GoNflTemplate struct {
+	t *template.Template
+}
+
+func (t *GoNflTemplate) Execute(w io.Writer, user string, content interface{}) {
+	data := struct {
+		User    string
+		Content interface{}
+	}{
+		User:    user,
+		Content: content,
+	}
+
+	t.t.Execute(w, data)
+}
+
 // Fetch returns the specified template, creating it and adding it to the
 // map of cached templates if it has not yet been created
-func Fetch(name string) *template.Template {
+func Fetch(name string) *GoNflTemplate {
 	cacheLock.Lock()
 	defer cacheLock.Unlock()
 
 	if t, ok := cache[name]; ok {
-		return t
+		return &GoNflTemplate{t: t}
 	}
 
 	t := template.New("_base.html").Funcs(funcs)
 	t = template.Must(t.ParseFiles("templates/_base.html", "templates/navbar.html", filepath.Join("templates", name)))
 	cache[name] = t
 
-	return t
+	return &GoNflTemplate{t: t}
 }
 
 // reverse takes a string representing a named route and returns a url for said route

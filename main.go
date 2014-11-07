@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,26 +20,27 @@ var (
 
 func init() {
 	router.HandleFunc("/", Index).Methods("GET").Name("Index")
+
 	router.HandleFunc("/login", LoginForm).Methods("GET").Name("LoginForm")
 	router.HandleFunc("/login", Login).Methods("POST")
-	router.HandleFunc("/logout", Logout).Methods("POST")
-	router.Handle("/picks", Protect(Picks)).Methods("GET").Name("Picks")
-	router.HandleFunc("/changePassword", ChangePasswordForm).Methods("GET").Name("ChangePasswordForm")
-	router.HandleFunc("/changePassowrd", ChangePassword).Methods("POST")
+	router.Handle("/logout", Protect(Logout)).Methods("POST")
+
+	router.Handle("/changePassword", Protect(ChangePasswordForm)).Methods("GET").Name("ChangePasswordForm")
+	router.Handle("/changePassowrd", Protect(ChangePassword)).Methods("POST")
+
+	router.Handle("/picks", Protect(PicksForm)).Methods("GET").Name("Picks")
+	router.Handle("/picks", Protect(ProcessPicks)).Methods("POST")
+	//router.Handle("/picks/{year:[0-9]*}/{week:[0-9]{2}}", Protect(PicksForm)).Methods("GET").Name("Picks")
+	//router.Handle("/picks/{year:[0-9]*}/{week:[0-9]{2}}", Protect(ProcessPicks)).Methods("POST")
+
+	//	router.Handle("/schedule/{year:[0-9]{4}}/{week:[0-9]{2}}", Schedule).Methods("GET").Name("Schedule")
+
+	//	router.Handle("/results/{year:[0-9]{4}}/{week:[0-9]{2}}", Protect(Results)).Methods("GET").Name("Results")
 }
 
 func main() {
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
 	log.Fatal(http.ListenAndServe(":61389", router))
-}
-
-func writeJsonResponse(w http.ResponseWriter, r interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	j, err := json.Marshal(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	w.Write(j)
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -50,8 +50,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	user := session.Values["user"]
 
 	if user == nil || user == "" {
-		t.Execute(w, "Random Person")
+		t.Execute(w, "", "Random Person")
 	} else {
-		t.Execute(w, fmt.Sprintf("%s", user))
+		t.Execute(w, user.(string), fmt.Sprintf("%s", user))
 	}
 }

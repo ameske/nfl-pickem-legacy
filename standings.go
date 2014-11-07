@@ -7,6 +7,14 @@ import (
 )
 
 func Stadings(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "LoginState")
+	user := session.Values["user"]
+
 	standings := database.GetStandingsForm(db)
-	Fetch("standings.html").Execute(w, standings)
+
+	if user == nil || user == "" {
+		Fetch("standings.html").Execute(w, "", standings)
+	} else {
+		Fetch("standings.html").Execute(w, user.(string), standings)
+	}
 }
