@@ -12,9 +12,10 @@ import (
 	"github.com/gorilla/context"
 )
 
+// LoginForm renders the login form, populating the form action with the desired destination
+// if the user arrived at this endpoint by requesting a protected endpoint while not authenticated.
 func LoginForm(w http.ResponseWriter, r *http.Request) {
 	n := context.Get(r, "next")
-
 	if n == nil {
 		log.Printf("User did not specify a next endpoint.")
 		Fetch("login.html").Execute(w, []string{"", "/login"})
@@ -26,6 +27,9 @@ func LoginForm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Login processes the form post, determining whether or not the user succssfully logged in. If the login
+// was a success the user is redirected to their desired endpoint, if such an endpoint exists. Otherwise,
+// the user is taken to the login page.
 func Login(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	next := r.FormValue("next")
@@ -48,6 +52,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	session.Values["user"] = u
 	session.Save(r, w)
 
+	// Redirect appropriately
 	if next == "" {
 		http.Redirect(w, r, "/", 302)
 	} else {
@@ -59,6 +64,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Logout clears the session information, which effectively logs the user out.
 func Logout(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "LoginState")
 	delete(session.Values, "status")
@@ -67,15 +73,18 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func ChangePasswordForm(w http.ResponseWriter, r *http.Request) {
-	Fetch("passwordChange.html").Execute(w, cpm{})
-}
-
-type cpm struct {
-	Success string
+// m is contains information for the passwordChange template
+type m struct {
 	Error   string
+	Success string
 }
 
+// ChangePasswordForm renders the change password template.
+func ChangePasswordForm(w http.ResponseWriter, r *http.Request) {
+	Fetch("passwordChange.html").Execute(w, m{})
+}
+
+// ChangePassword processes the password change form, informing the user of any problems or success.
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
@@ -86,27 +95,21 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	// Check that this user is actually who they claim they are
 	if !database.CheckCredentials(db, u, p) {
-		Fetch("passwordChange.html").Execute(w, "Invalid username or password.")
+		Fetch("passwordChange.html").Execute(w, m{Error: "Invalid username or password"})
 		return
 	}
 
 	// Make sure the user REALLY knows their new password and it isn't empty
 	if pN != pNC || pN == "" {
-		m := cpm{
-			Error: "Passwords do not match.",
-		}
-		Fetch("passwordChange.html").Execute(w, m)
+		Fetch("passwordChange.html").Execute(w, m{Error: "Passwords do not match."})
 	}
 
+	// Perform the password update
 	bpass, err := bcrypt.GenerateFromPassword([]byte(pN), bcrypt.DefaultCost)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-
 	database.UpdatePassword(db, u, bpass)
 
-	m := cpm{
-		Success: "Password succesfully update!",
-	}
-	Fetch("passwordChange.html").Execute(w, m)
+	Fetch("passwordChange.html").Execute(w, m{Success: "Password updated successfully."})
 }
