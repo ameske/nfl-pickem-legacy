@@ -11,14 +11,23 @@ three to five 3 point games based on the number of byes in a week. The remainder
 are worth only one point.
 
 This is a work in progress in my spare time, so I cannot make any guarantees to when I will
-complete it. You are more than welcome to use any part of the application that you like. I
-will try to keep an accurate report on what I'm working on and what I have completed.
+complete it. You are more than welcome to use any part of the application that you like. I will try to keep an accurate report on what I'm working on and what I have completed, updating every few weeks with the high-level changes and future plans.
 
-# Project Status
+# Project Status Updates
 
-Next planned development:
-- Simple login/logout pages
-- Simple pick submission pages for an authenticated user
+Current Development:
+
+- Results Page
+- Standings Page
+- Pick form processing
+
+November 7, 2014: 
+
+- Login and Logout
+- Ability for users to change their password
+- A variety of scripts to administer the application. (adding users, manually inputting picks, grading picks)
+- A "make your picks" page (note: back-end processing of this form is not yet complete)
+- Redirection to desired endpoints following login when accessing a protected endpoint without authorization
 
 October 22, 2014:
 - Auth and protected endpoint skeleton code
