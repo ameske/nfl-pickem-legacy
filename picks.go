@@ -1,11 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/ameske/go_nfl/database"
+	"github.com/gorilla/mux"
 )
+
+func yearWeek(v map[string]string) (int, int) {
+	y, _ := strconv.ParseInt(v["year"], 10, 32)
+	w, _ := strconv.ParseInt(v["week"], 10, 32)
+	return int(y), int(w)
+}
 
 // Picks fetches this week's picks for the current logged in user and renders the
 // picks template with them.
@@ -13,25 +22,98 @@ func PicksForm(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "LoginState")
 	user := session.Values["user"].(string)
 
-	picks := database.FormPicks(db, user, 2014, 10)
+	v := mux.Vars(r)
+	year, week := yearWeek(v)
+
+	picks := database.FormPicks(db, user, year, week)
 	log.Printf("Pulled %d picks for user %s", len(picks), user)
-	Fetch("picks.html").Execute(w, user, picks)
-}
 
-// ProcessPicks processes a user's picks ensuring the following.
-//	- The user has not entered more than one 7 point game
-//	- The user has not entered more than two 5 point games
-//	- The user has not entered more than the allowable 3 point games for the week
-//
-// This does NOT check if a user has entered something for all of the games, as a user
-// might not want to enter all of their picks at once. Picks are locked after the start
-// of the game, and any submissions following game time must be manually entered.
-func ProcessPicks(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-
-	for k, _ := range r.Form {
-		log.Printf("%s: %s", k, r.FormValue(k))
+	for _, p := range picks {
+		log.Printf("%v", p)
 	}
 
-	w.Write([]byte("All done here!"))
+	data := struct {
+		URL   string
+		Picks []database.FormPick
+	}{
+		r.URL.String(),
+		picks,
+	}
+
+	Fetch("picks.html").Execute(w, user, data)
+}
+
+// ProcessPicks validates a user's picks, and then updates the current picks in the database
+func ProcessPicks(w http.ResponseWriter, r *http.Request) {
+	// Gather endpoint information
+	r.ParseForm()
+
+	picks := r.Form["ids"]
+
+	// First, validate that the user has not broken the rules for the given week
+	if !validate(picks, r) {
+		w.Write([]byte("Valid Picks"))
+		return
+	}
+
+	for _, p := range picks {
+		id, _ := strconv.ParseInt(p, 10, 64)
+
+		// Fetch the Pick in question
+		var pick database.Picks
+		err := db.SelectOne(&pick, "SELECT * FROM picks WHERE id = $1", id)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+
+		// Fetch the selection and the Point Value
+		selection, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Selection", p)), 10, 32)
+		points, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", p)), 10, 32)
+
+		pick.Selection = int(selection)
+		pick.Points = int(points)
+
+		_, err = db.Update(&pick)
+		if err != nil {
+			log.Fatalf("ProcessPicks: %s", err.Error())
+		}
+	}
+
+	w.Write([]byte("Picks submitted successfully!"))
+}
+
+func validate(picks []string, r *http.Request) bool {
+	v := mux.Vars(r)
+	year, week := yearWeek(v)
+
+	weekId := database.WeekId(db, year, week)
+	pvs := database.GetPvs(db, weekId)
+
+	one := 0
+	three := 0
+	five := 0
+	seven := 0
+
+	for _, p := range picks {
+		tmp, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", p)), 10, 32)
+		switch tmp {
+		case 1:
+			one += 1
+		case 3:
+			three += 1
+		case 5:
+			five += 1
+		case 7:
+			seven += 1
+		}
+	}
+
+	log.Printf("Found:\tSeven:%d\tFive:%d\tThree:%d\tOne:%d\t", seven, five, three, one)
+	log.Printf("Expected:\tSeven:%d\tFive:%d\tThree:%d\tOne:%d\t", pvs.Seven, pvs.Five, pvs.Three, pvs.One)
+
+	if one > pvs.One || three > pvs.Three || five > pvs.Five || seven > pvs.Seven {
+		return false
+	}
+
+	return true
 }

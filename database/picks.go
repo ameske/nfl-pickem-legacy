@@ -19,14 +19,19 @@ type Picks struct {
 
 //FormPick contains the information required to populate a picks HTML Form
 type FormPick struct {
-	Id       int64
-	Time     time.Time
-	Away     string
-	AwayNick string
-	AwayId   int64
-	Home     string
-	HomeNick string
-	HomeId   int64
+	Id        int64
+	Time      time.Time
+	Away      string
+	AwayNick  string
+	AwayId    int64
+	Home      string
+	HomeNick  string
+	HomeId    int64
+	Selection int
+	Points    int
+	Disabled  bool
+	Graded    bool
+	Correct   bool
 }
 
 // GameResult is a struct representing the join of the Games and Picks table, used for
@@ -84,16 +89,29 @@ func FormPicks(db *gorp.DbMap, username string, year int, week int) []FormPick {
 			log.Fatalf("GetWeeklyPicks: %s", err.Error())
 		}
 
+		disabled, graded := false, false
+		if time.Now().After(g.Date) {
+			disabled = true
+		}
+		if time.Since(g.Date) > time.Duration(48)*time.Hour && g.HomeScore != -1 && g.AwayScore != -1 {
+			graded = true
+		}
+
 		// Construct the FormPick
 		f := FormPick{
-			Id:       p.Id,
-			Time:     g.Date,
-			Away:     a.City,
-			AwayNick: a.Nickname,
-			AwayId:   a.Id,
-			Home:     h.City,
-			HomeNick: h.Nickname,
-			HomeId:   h.Id,
+			Id:        p.Id,
+			Time:      g.Date,
+			Away:      a.City,
+			AwayNick:  a.Nickname,
+			AwayId:    a.Id,
+			Home:      h.City,
+			HomeNick:  h.Nickname,
+			HomeId:    h.Id,
+			Selection: p.Selection,
+			Points:    p.Points,
+			Disabled:  disabled,
+			Graded:    graded,
+			Correct:   p.Correct,
 		}
 		formGames = append(formGames, f)
 	}

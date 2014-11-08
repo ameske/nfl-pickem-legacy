@@ -28,12 +28,8 @@ func init() {
 	router.Handle("/changePassword", Protect(ChangePasswordForm)).Methods("GET").Name("ChangePasswordForm")
 	router.Handle("/changePassowrd", Protect(ChangePassword)).Methods("POST")
 
-	router.Handle("/picks", Protect(PicksForm)).Methods("GET").Name("Picks")
-	router.Handle("/picks", Protect(ProcessPicks)).Methods("POST")
-	//router.Handle("/picks/{year:[0-9]*}/{week:[0-9]{2}}", Protect(PicksForm)).Methods("GET").Name("Picks")
-	//router.Handle("/picks/{year:[0-9]*}/{week:[0-9]{2}}", Protect(ProcessPicks)).Methods("POST")
-
-	//	router.Handle("/schedule/{year:[0-9]{4}}/{week:[0-9]{2}}", Schedule).Methods("GET").Name("Schedule")
+	router.Handle("/picks/{year:[0-9]*}/{week:[0-9]*}", Protect(PicksForm)).Methods("GET").Name("Picks")
+	router.Handle("/picks/{year:[0-9]*}/{week:[0-9]*}", Protect(ProcessPicks)).Methods("POST")
 
 	//	router.Handle("/results/{year:[0-9]{4}}/{week:[0-9]{2}}", Protect(Results)).Methods("GET").Name("Results")
 }

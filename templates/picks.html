@@ -2,7 +2,7 @@
 
 {{define "content"}}
 <div class="container">
-  <form role="form" method="post" action="/picks">
+    <form role="form" method="post" action="{{.URL}}">
     <table class="table table-striped">
       <tr>
         <th>Game Time</th>
@@ -11,23 +11,65 @@
         <th>Selection</th>
         <th>Points</th>
       </tr>
-      {{range .}}
-      <tr>
+      {{range .Picks}}
+      <input type="hidden" name="ids" value="{{.Id}}">
+      {{if and .Graded .Correct}}<tr class="success">{{else if .Graded}}<tr class="danger">{{else}}<tr>{{end}}
         <td>{{.Time}}</td>
         <td>{{.Away}} {{.AwayNick}}</td>
         <td>{{.Home}} {{.HomeNick}}</td>
         <td>
-          <select class="form-control" name="{{.Id}}">
-            <option value="{{.AwayId}}">{{.Away}}</option>
-            <option value="{{.HomeId}}">{{.Home}}</option>
+            {{if .Disabled}}
+            <select class="form-control" name="{{.Id}}-Selection" disabled="disabled">
+            {{else}}
+            <select class="form-control" name="{{.Id}}-Selection">
+            {{end}}
+              {{if eq .Selection 1}}
+              <option value="1" selected="selected">{{.Away}}</option>
+              <option value="2">{{.Home}}</option>
+              {{else if eq .Selection 2}}
+              <option value="1">{{.Away}}</option>
+              <option value="2" selected="selected">{{.Home}}</option>
+              {{else}}
+              <option value="0" selected="selected">--Winner--</option>
+              <option value="1">{{.Away}}</option>
+              <option value="2">{{.Home}}</option>
+              {{end}}
           </select></td>
         <td>
-          <select class="form-control">
-            <option value="1">1</option>
-            <option value="3">3</option>
-            <option value="5">5</option>
-            <option value="7">7</option>
+            {{if .Disabled}}
+            <select class="form-control" name="{{.Id}}-Points" disabled="disabled">
+            {{else}}
+            <select class="form-control" name="{{.Id}}-Points">
+            {{end}}
+              {{if eq .Points 1}}
+              <option value="1" selected="selected">1</option>
+              <option value="3">3</option>
+              <option value="5">5</option>
+              <option value="7">7</option>
+              {{else if eq .Points 3}}
+              <option value="1">1</option>
+              <option value="3" selected="selected">3</option>
+              <option value="5">5</option>
+              <option value="7">7</option>
+              {{else if eq .Points 5}}
+              <option value="1">1</option>
+              <option value="3">3</option>
+              <option value="5" selected="selected">5</option>
+              <option value="7">7</option>
+              {{else if eq .Points 7}}
+              <option value="1">1</option>
+              <option value="3">3</option>
+              <option value="5">5</option>
+              <option value="7" selected="selected">7</option>
+              {{else}}
+              <option value="0" selected="selected">--Points--</option>
+              <option value="1">1</option>
+              <option value="3">3</option>
+              <option value="5">5</option>
+              <option value="7">7</option>
+              {{end}}
           </select></td>
+        </td>
       </tr>
       {{end}}
     </table>
