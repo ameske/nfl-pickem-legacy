@@ -7,14 +7,7 @@ import (
 	"strconv"
 
 	"github.com/ameske/go_nfl/database"
-	"github.com/gorilla/mux"
 )
-
-func yearWeek(v map[string]string) (int, int) {
-	y, _ := strconv.ParseInt(v["year"], 10, 32)
-	w, _ := strconv.ParseInt(v["week"], 10, 32)
-	return int(y), int(w)
-}
 
 // Picks fetches this week's picks for the current logged in user and renders the
 // picks template with them.
@@ -22,8 +15,7 @@ func PicksForm(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "LoginState")
 	user := session.Values["user"].(string)
 
-	v := mux.Vars(r)
-	year, week := yearWeek(v)
+	year, week := yearWeek(r)
 
 	picks := database.FormPicks(db, user, year, week)
 	log.Printf("Pulled %d picks for user %s", len(picks), user)
@@ -83,8 +75,7 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 }
 
 func validate(picks []string, r *http.Request) bool {
-	v := mux.Vars(r)
-	year, week := yearWeek(v)
+	year, week := yearWeek(r)
 
 	weekId := database.WeekId(db, year, week)
 	pvs := database.GetPvs(db, weekId)

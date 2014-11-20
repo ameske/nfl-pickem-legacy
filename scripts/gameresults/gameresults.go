@@ -30,7 +30,7 @@ func main() {
 
 	db := database.NflDb()
 
-	resultBytes, err := ioutil.ReadFile(fmt.Sprintf("json/2014/2014-Week%d-Results.json", *week))
+	resultBytes, err := ioutil.ReadFile(fmt.Sprintf("../json/2014/2014-Week%d-Results.json", *week))
 	if err != nil {
 		log.Fatalf("%s", err.Error())
 	}
