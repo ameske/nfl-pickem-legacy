@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS teams (
     id SERIAL PRIMARY KEY,
     city varchar(64) NOT NULL,
     nickname varchar(64) NOT NULL,
-    stadium varchar(64) NOT NULL
+    stadium varchar(64) NOT NULL,
+    abbreviation varchar(4) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS years (
