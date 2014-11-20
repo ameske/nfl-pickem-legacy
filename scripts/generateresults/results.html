@@ -1,0 +1,37 @@
+{{.Title}}
+
+{{.Content}}
+<div class="container">
+    <!-- Standings Table -->
+    <table class="table table-bordered">
+        <tr>
+            <th></th>
+            {{range .Users}}
+            <th>{{.FirstName}}</th>
+            {{end}}
+        </tr>
+        {{range .Rows}}
+        <tr>
+            <td>{{.Matchup}}</td>
+            {{range .Picks}}
+            {{if .Correct}}<td class="success">{{.Pick}} {{if eq .Points 1}}{{else}}({{.Points}}){{end}}</td>{{else if not .Correct}}<td class="danger">{{.Pick}} {{if eq .Points 1}}{{else}}({{.Points}}){{end}}</td>{{end}}
+            {{end}}
+        </tr>
+        {{end}}
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Total</td>
+            {{range .Totals}}<td>{{.}}</td>{{end}}
+        </tr>
+    </table>
+</div>
+{{.End}}

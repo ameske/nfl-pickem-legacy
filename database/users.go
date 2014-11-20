@@ -19,6 +19,16 @@ type Users struct {
 	Password  string    `db:"password"`
 }
 
+func AllUsers(db *gorp.DbMap) []Users {
+	var users []Users
+	_, err := db.Select(&users, "SELECT * from users ORDER BY first_name ASC")
+	if err != nil {
+		log.Fatalf("AllUsers: %s", err.Error())
+	}
+
+	return users
+}
+
 func UserId(db *gorp.DbMap, username string) int64 {
 	var userId int64
 	err := db.SelectOne(&userId, "SELECT id FROM users WHERE email = $1", username)

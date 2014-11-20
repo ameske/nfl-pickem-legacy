@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/ameske/go_nfl/database"
 	"github.com/gorilla/mux"
@@ -31,7 +32,7 @@ func init() {
 	router.Handle("/picks/{year:[0-9]*}/{week:[0-9]*}", Protect(PicksForm)).Methods("GET").Name("Picks")
 	router.Handle("/picks/{year:[0-9]*}/{week:[0-9]*}", Protect(ProcessPicks)).Methods("POST")
 
-	//	router.Handle("/results/{year:[0-9]{4}}/{week:[0-9]{2}}", Protect(Results)).Methods("GET").Name("Results")
+	router.HandleFunc("/results/{year:[0-9]*}/{week:[0-9]*}", Results).Methods("GET").Name("Results")
 }
 
 func main() {
@@ -40,14 +41,31 @@ func main() {
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	t := Fetch("index.html")
+	u := currentUser(r)
+	Fetch("index.html").Execute(w, u, u)
+}
 
+func Results(w http.ResponseWriter, r *http.Request) {
+	year, week := yearWeek(r)
+	results := fmt.Sprintf("%d-Week%d-Results.html", year, week)
+	u := currentUser(r)
+	Fetch(results).Execute(w, u, nil)
+}
+
+func currentUser(r *http.Request) string {
 	session, _ := store.Get(r, "LoginState")
 	user := session.Values["user"]
 
 	if user == nil || user == "" {
-		t.Execute(w, "", "Random Person")
+		return ""
 	} else {
-		t.Execute(w, user.(string), fmt.Sprintf("%s", user))
+		return user.(string)
 	}
+}
+
+func yearWeek(r *http.Request) (int, int) {
+	v := mux.Vars(r)
+	y, _ := strconv.ParseInt(v["year"], 10, 32)
+	w, _ := strconv.ParseInt(v["week"], 10, 32)
+	return int(y), int(w)
 }

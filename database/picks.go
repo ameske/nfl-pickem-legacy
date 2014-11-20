@@ -34,29 +34,11 @@ type FormPick struct {
 	Correct   bool
 }
 
-// GameResult is a struct representing the join of the Games and Picks table, used for
-// displaying a user's scored picks
-type GameResult struct {
-	Games
-	Picks
-}
-
-// WeeklyResults gathers the information needed to display a user's results for the given week
-func WeeklyResults(db *gorp.DbMap, userId int64, year, week int) (results []GameResult) {
-	weekId := WeekId(db, year, week)
-	_, err := db.Select(&results, "SELECT * FROM games JOIN picks ON picks.game_id = games.id WHERE user_id = $1 AND games.week_id = $2", userId, weekId)
-	if err != nil {
-		log.Fatalf("WeeklyResults: %s", err.Error())
-	}
-
-	return
-}
-
 // WeeklyPicks creates a []Picks representing a user's picks for the given week
-func WeeklyPicks(db *gorp.DbMap, userId int64, year int, week int) (picks []Picks) {
+func WeeklyPicks(db *gorp.DbMap, userId int64, year int, week int) (picks []*Picks) {
 	weekId := WeekId(db, year, week)
 
-	_, err := db.Select(&picks, "SELECT picks.* FROM picks join games ON picks.game_id = games.id WHERE games.week_id = $1 AND picks.user_id = $2", weekId, userId)
+	_, err := db.Select(&picks, "SELECT picks.* FROM picks join games ON picks.game_id = games.id WHERE games.week_id = $1 AND picks.user_id = $2 ORDER BY games.date ASC", weekId, userId)
 	if err != nil {
 		log.Fatalf("GetWeeklyPicks: %s", err.Error())
 	}
