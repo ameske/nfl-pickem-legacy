@@ -17,10 +17,15 @@ complete it. You are more than welcome to use any part of the application that y
 
 Current Development:
 
-- Results Page
-- Standings Page
 - Pick form processing
 
+November 25, 2014:
+
+- Results pages for each week
+- Standings pages for each week
+- Changed the home page to always show the current standings
+- A script to generate the static results page for a given week
+- 
 November 7, 2014: 
 
 - Login and Logout
