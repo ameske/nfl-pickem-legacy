@@ -66,6 +66,19 @@ CREATE TABLE IF NOT EXISTS picks (
     correct boolean
 );
 
+CREATE TABLE IF NOT EXISTS statistics (
+    id SERIAL PRIMARY KEY,
+    user_id integer REFERENCES users,
+    week_id integer REFERENCES weeks,
+    zero integer,
+    one integer,
+    three integer,
+    five integer,
+    seven integer,
+    winner boolean,
+    lowest boolean
+);
+
 ALTER TABLE picks OWNER TO nfl;
 ALTER TABLE games OWNER TO nfl;
 ALTER TABLE years OWNER TO nfl;
@@ -73,3 +86,4 @@ ALTER TABLE weeks OWNER TO nfl;
 ALTER TABLE teams OWNER TO nfl;
 ALTER TABLE users OWNER TO nfl;
 ALTER TABLE pvs OWNER TO nfl;
+ALTER TABLE statistics OWNER TO nfl;
