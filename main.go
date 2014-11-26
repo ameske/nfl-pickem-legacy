@@ -33,6 +33,8 @@ func init() {
 	router.Handle("/picks/{year:[0-9]*}/{week:[0-9]*}", Protect(ProcessPicks)).Methods("POST")
 
 	router.HandleFunc("/results/{year:[0-9]*}/{week:[0-9]*}", Results).Methods("GET").Name("Results")
+
+	router.HandleFunc("/standings/{year:[0-9]*}/{week:[0-9]*}", Standings).Methods("GET").Name("Standings")
 }
 
 func main() {
@@ -42,7 +44,8 @@ func main() {
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	u := currentUser(r)
-	Fetch("index.html").Execute(w, u, u)
+	s := database.Standings(db, 2014, 12)
+	Fetch("index.html").Execute(w, u, s)
 }
 
 func Results(w http.ResponseWriter, r *http.Request) {

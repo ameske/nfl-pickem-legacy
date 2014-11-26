@@ -1,7 +1,26 @@
-{{define "title"}}Nfl Pick-Em{{end}}
+{{define "title"}}NFL Pick-Em{{end}}
 
 {{define "content"}}
 <div class="container">
-    <p>Hello {{.}}</p>
+    <div class="page-header">
+        <h1>2014 Current NFL Pick-Em Standings</h1>
+    </div>
+</div>
+<div class="container">
+    <!-- Standings Table -->
+    <table class="table table-bordered">
+        <tr>
+            <th></th>
+            <th>Total Points</th>
+            <th>Points Back</th>
+        </tr>
+        {{range .}}
+        <tr>
+            <td>{{.User}}</td>
+            <td>{{.Points}}</td>
+            <th>{{.Behind}}</td>
+        </tr>
+        {{end}}
+    </table>
 </div>
 {{end}}

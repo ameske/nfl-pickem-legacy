@@ -1,22 +1,21 @@
 {{define "title"}}Standings{{end}}
 
 {{define "content"}}
-		<div class="container">
-
-			<!-- Standings Table -->
-			<table class="table table-bordered">
-				<thead>
-					<tr>
-						<th>Participant</th>
-						<th>Total Points</th>
-						<th>Adjusted Points</th>
-						<th>Record</th>
-						<th>Percentage</th>
-						<th>Week Wins</th>
-						<th>Points Back</th>
-					</tr>
-				</thead>
-
-			</table>
-		</div>
+<div class="container">
+    <!-- Standings Table -->
+    <table class="table table-bordered">
+        <tr>
+            <th></th>
+            <th>Total Points</th>
+            <th>Points Back</th>
+        </tr>
+        {{range .}}
+        <tr>
+            <td>{{.User}}</td>
+            <td>{{.Points}}</td>
+            <th>{{.Behind}}</td>
+        </tr>
+        {{end}}
+    </table>
+</div>
 {{end}}
