@@ -29,16 +29,22 @@ type FormPick struct {
 	HomeId    int64
 	Selection int
 	Points    int
-	Disabled  bool
-	Graded    bool
-	Correct   bool
+	Disabled  bool `db"-"`
+	Graded    bool `db:"-"`
+	Correct   bool `db:"-"`
 }
 
 // WeeklyPicks creates a []Picks representing a user's picks for the given week
-func WeeklyPicks(db *gorp.DbMap, userId int64, year int, week int) (picks []*Picks) {
-	weekId := WeekId(db, year, week)
+func WeeklyPicks(db *gorp.DbMap, user int64, year int, week int) (picks []*Picks) {
+	sql := `SELECT picks.*
+		FROM picks
+		JOIN games ON games.id = picks.game_id
+		JOIN weeks ON weeks.id = games.week_id
+		JOIN years ON years.id = weeks.year_id
+		WHERE years.year = $1 AND weeks.week = $2 AND picks.user_id = $3
+		ORDER BY games.date ASC`
 
-	_, err := db.Select(&picks, "SELECT picks.* FROM picks join games ON picks.game_id = games.id WHERE games.week_id = $1 AND picks.user_id = $2 ORDER BY games.date ASC", weekId, userId)
+	_, err := db.Select(&picks, sql, year, week, user)
 	if err != nil {
 		log.Fatalf("GetWeeklyPicks: %s", err.Error())
 	}
