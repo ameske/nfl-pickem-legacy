@@ -2,20 +2,17 @@ package database
 
 import (
 	"log"
+	"time"
 
 	"github.com/coopernurse/gorp"
 )
 
-type Years struct {
-	Id   int64 `db:"id"`
-	Year int   `db:"year"`
-}
-
 type Weeks struct {
-	Id     int64 `db:"id"`
-	YearId int64 `db:"year_id"`
-	PvsId  int64 `db:"pvs_id"`
-	Week   int   `db:"week"`
+	Id        int64 `db:"id"`
+	YearId    int64 `db:"year_id"`
+	PvsId     int64 `db:"pvs_id"`
+	Week      int   `db:"week"`
+	WeekStart int64 `db:"week_start"`
 }
 
 func WeekId(db *gorp.DbMap, year, week int) int64 {
@@ -26,4 +23,17 @@ func WeekId(db *gorp.DbMap, year, week int) int64 {
 	}
 
 	return weekId
+}
+
+func CurrentWeek(db *gorp.DbMap) int {
+	t := time.Now().Unix()
+	y := time.Now().Year()
+
+	var week int
+	err := db.SelectOne(&week, "SELECT MAX(week) FROM weeks JOIN years ON years.id = weeks.year_id WHERE year = $1 AND week_start < $2", y, t)
+	if err != nil {
+		log.Fatalf("CurrentWeek: %s", err.Error())
+	}
+
+	return week
 }
