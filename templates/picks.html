@@ -13,7 +13,7 @@
       </tr>
       {{range .Picks}}
       <input type="hidden" name="ids" value="{{.Id}}">
-      {{if and .Graded .Correct}}<tr class="success">{{else if .Graded}}<tr class="danger">{{else}}<tr>{{end}}
+      if {{.Disabled}}<tr class="active">{{else}}<tr>{{end}}
         <td>{{.Time}}</td>
         <td>{{.Away}} {{.AwayNick}}</td>
         <td>{{.Home}} {{.HomeNick}}</td>

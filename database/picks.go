@@ -30,8 +30,6 @@ type FormPick struct {
 	Selection int
 	Points    int
 	Disabled  bool `db"-"`
-	Graded    bool `db:"-"`
-	Correct   bool `db:"-"`
 }
 
 // WeeklyPicks creates a []Picks representing a user's picks for the given week
@@ -77,13 +75,7 @@ func FormPicks(db *gorp.DbMap, username string, year int, week int) []FormPick {
 			log.Fatalf("GetWeeklyPicks: %s", err.Error())
 		}
 
-		disabled, graded := false, false
-		if time.Now().After(g.Date) {
-			disabled = true
-		}
-		if time.Since(g.Date) > time.Duration(48)*time.Hour && g.HomeScore != -1 && g.AwayScore != -1 {
-			graded = true
-		}
+		disabled := time.Now().After(g.Date)
 
 		// Construct the FormPick
 		f := FormPick{
@@ -98,8 +90,6 @@ func FormPicks(db *gorp.DbMap, username string, year int, week int) []FormPick {
 			Selection: p.Selection,
 			Points:    p.Points,
 			Disabled:  disabled,
-			Graded:    graded,
-			Correct:   p.Correct,
 		}
 		formGames = append(formGames, f)
 	}
