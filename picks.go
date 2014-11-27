@@ -12,17 +12,10 @@ import (
 // Picks fetches this week's picks for the current logged in user and renders the
 // picks template with them.
 func PicksForm(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "LoginState")
-	user := session.Values["user"].(string)
-
+	user := currentUser(r)
 	year, week := yearWeek(r)
 
 	picks := database.FormPicks(db, user, year, week)
-	log.Printf("Pulled %d picks for user %s", len(picks), user)
-
-	for _, p := range picks {
-		log.Printf("%v", p)
-	}
 
 	data := struct {
 		URL   string
@@ -39,26 +32,23 @@ func PicksForm(w http.ResponseWriter, r *http.Request) {
 func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 	// Gather endpoint information
 	r.ParseForm()
-
 	picks := r.Form["ids"]
 
-	// First, validate that the user has not broken the rules for the given week
 	if !validate(picks, r) {
 		w.Write([]byte("Valid Picks"))
 		return
 	}
 
+	// Update the picks in the database based on the user's selection
 	for _, p := range picks {
 		id, _ := strconv.ParseInt(p, 10, 64)
 
-		// Fetch the Pick in question
 		var pick database.Picks
 		err := db.SelectOne(&pick, "SELECT * FROM picks WHERE id = $1", id)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
 
-		// Fetch the selection and the Point Value
 		selection, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Selection", p)), 10, 32)
 		points, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", p)), 10, 32)
 
@@ -71,14 +61,17 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// TODO - Email the user their picks
 	w.Write([]byte("Picks submitted successfully!"))
 }
 
+// validate handles server side validation of the point distribution of a submitted
+// point set. It allows users to "under-point" their picks to allow them to submit
+// games at their leisure.
 func validate(picks []string, r *http.Request) bool {
 	year, week := yearWeek(r)
 
-	weekId := database.WeekId(db, year, week)
-	pvs := database.GetPvs(db, weekId)
+	pvs := database.WeekPvs(db, year, week)
 
 	one := 0
 	three := 0
@@ -99,10 +92,7 @@ func validate(picks []string, r *http.Request) bool {
 		}
 	}
 
-	log.Printf("Found:\tSeven:%d\tFive:%d\tThree:%d\tOne:%d\t", seven, five, three, one)
-	log.Printf("Expected:\tSeven:%d\tFive:%d\tThree:%d\tOne:%d\t", pvs.Seven, pvs.Five, pvs.Three, pvs.One)
-
-	if one > pvs.One || three > pvs.Three || five > pvs.Five || seven > pvs.Seven {
+	if three > pvs.Three || five > pvs.Five || seven > pvs.Seven {
 		return false
 	}
 

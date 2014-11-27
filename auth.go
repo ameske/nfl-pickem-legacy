@@ -81,16 +81,14 @@ type m struct {
 
 // ChangePasswordForm renders the change password template.
 func ChangePasswordForm(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "LoginState")
-	u := session.Values["user"].(string)
+	u := currentUser(r)
 	Fetch("passwordChange.html").Execute(w, u, m{})
 }
 
 // ChangePassword processes the password change form, informing the user of any problems or success.
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	session, _ := store.Get(r, "LoginState")
-	u := session.Values["user"].(string)
+	u := currentUser(r)
 
 	p := r.FormValue("oldPassword")
 	pN := r.FormValue("newPassword")
