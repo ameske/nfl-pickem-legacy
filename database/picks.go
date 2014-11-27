@@ -33,7 +33,9 @@ type FormPick struct {
 }
 
 // WeeklyPicks creates a []Picks representing a user's picks for the given week
-func WeeklyPicks(db *gorp.DbMap, user int64, year int, week int) (picks []*Picks) {
+func WeeklyPicks(db *gorp.DbMap, user int64) (picks []*Picks) {
+	year, week := CurrentWeek(db)
+
 	sql := `SELECT picks.*
 		FROM picks
 		JOIN games ON games.id = picks.game_id
@@ -51,10 +53,11 @@ func WeeklyPicks(db *gorp.DbMap, user int64, year int, week int) (picks []*Picks
 }
 
 // FormPicks gathers the neccessary information needed render a user's pick-em form
-func FormPicks(db *gorp.DbMap, username string, year int, week int) []FormPick {
+func FormPicks(db *gorp.DbMap, username string) []FormPick {
 	userId := UserId(db, username)
 
-	picks := WeeklyPicks(db, userId, year, week)
+	picks := WeeklyPicks(db, userId)
+
 	formGames := make([]FormPick, 0)
 	for _, p := range picks {
 		// Lookup the game information
@@ -75,7 +78,7 @@ func FormPicks(db *gorp.DbMap, username string, year int, week int) []FormPick {
 			log.Fatalf("GetWeeklyPicks: %s", err.Error())
 		}
 
-		disabled := time.Now().After(g.Date)
+		disabled := time.Now().After(g.Date.Add(time.Hour * 5))
 
 		// Construct the FormPick
 		f := FormPick{

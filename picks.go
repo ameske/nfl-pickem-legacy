@@ -7,20 +7,32 @@ import (
 	"strconv"
 
 	"github.com/ameske/go_nfl/database"
+	"github.com/gorilla/context"
 )
 
 // Picks fetches this week's picks for the current logged in user and renders the
 // picks template with them.
 func PicksForm(w http.ResponseWriter, r *http.Request) {
 	user := currentUser(r)
-	year, week := yearWeek(r)
 
-	picks := database.FormPicks(db, user, year, week)
+	picks := database.FormPicks(db, user)
+
+	e, s := "", ""
+	if context.Get(r, "error") != nil {
+		e = context.Get(r, "error").(string)
+	}
+	if context.Get(r, "success") != nil {
+		s = context.Get(r, "success").(string)
+	}
 
 	data := struct {
-		URL   string
-		Picks []database.FormPick
+		Error   string
+		Success string
+		URL     string
+		Picks   []database.FormPick
 	}{
+		e,
+		s,
 		r.URL.String(),
 		picks,
 	}
@@ -35,7 +47,8 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 	picks := r.Form["ids"]
 
 	if !validate(picks, r) {
-		w.Write([]byte("Valid Picks"))
+		context.Set(r, "error", "Invalid picks")
+		PicksForm(w, r)
 		return
 	}
 
@@ -62,16 +75,15 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO - Email the user their picks
-	w.Write([]byte("Picks submitted successfully!"))
+	context.Set(r, "success", "Picks submitted successfully!")
+	PicksForm(w, r)
 }
 
 // validate handles server side validation of the point distribution of a submitted
 // point set. It allows users to "under-point" their picks to allow them to submit
 // games at their leisure.
 func validate(picks []string, r *http.Request) bool {
-	year, week := yearWeek(r)
-
-	pvs := database.WeekPvs(db, year, week)
+	pvs := database.WeekPvs(db)
 
 	one := 0
 	three := 0

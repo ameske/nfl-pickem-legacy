@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,22 +17,40 @@ var (
 	store  = sessions.NewCookieStore(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32))
 	db     = database.NflDb()
 	router = mux.NewRouter()
+	config = Config{}
 )
 
 func init() {
 	router.HandleFunc("/", Index).Methods("GET").Name("Index")
 	router.HandleFunc("/login", LoginForm).Methods("GET").Name("LoginForm")
 	router.HandleFunc("/login", Login).Methods("POST")
-	router.Handle("/logout", Protect(Logout)).Methods("POST")
+	router.Handle("/logout", Protect(Logout)).Methods("GET")
 	router.Handle("/changePassword", Protect(ChangePasswordForm)).Methods("GET").Name("ChangePasswordForm")
-	router.Handle("/changePassowrd", Protect(ChangePassword)).Methods("POST")
-	router.Handle("/picks/{year:[0-9]*}/{week:[0-9]*}", Protect(PicksForm)).Methods("GET").Name("Picks")
-	router.Handle("/picks/{year:[0-9]*}/{week:[0-9]*}", Protect(ProcessPicks)).Methods("POST")
+	router.Handle("/changePassword", Protect(ChangePassword)).Methods("POST")
+	router.Handle("/picks", Protect(PicksForm)).Methods("GET").Name("Picks")
+	router.Handle("/picks", Protect(ProcessPicks)).Methods("POST")
 	router.HandleFunc("/results/{year:[0-9]*}/{week:[0-9]*}", Results).Methods("GET").Name("Results")
 	router.HandleFunc("/standings/{year:[0-9]*}/{week:[0-9]*}", Standings).Methods("GET").Name("Standings")
 }
 
 func main() {
+	configPath := flag.String("config", "", "Location of config file")
+	flag.Parse()
+
+	if *configPath == "" {
+		log.Fatalf("Config path must be specified")
+		flag.PrintDefaults()
+	}
+
+	if err := LoadConfig(*configPath); err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	log.Printf("NFL App Setting (Email): %s", config.EmailAddress)
+	log.Printf("NFL App Setting (Password): %s", config.Password)
+	log.Printf("NFL App Setting (SMTP Address): %s", config.SMTPAddress)
+	log.Printf("NFL App Setting (SMTP Port): %s", config.SMTPPort)
+
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
 	log.Fatal(http.ListenAndServe(":61389", router))
 }

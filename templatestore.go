@@ -6,6 +6,7 @@ import (
 	"log"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 /*
@@ -18,7 +19,8 @@ var (
 )
 
 var funcs = template.FuncMap{
-	"reverse": reverse,
+	"reverse":  reverse,
+	"gametime": gametime,
 }
 
 type GoNflTemplate struct {
@@ -62,4 +64,8 @@ func reverse(name string, params ...string) string {
 	}
 
 	return url.Path
+}
+
+func gametime(time time.Time) string {
+	return time.Format("Mon Jan 2 2006 15:04")
 }

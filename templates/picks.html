@@ -2,6 +2,8 @@
 
 {{define "content"}}
 <div class="container">
+    <p class="text-danger">{{.Error}}</p>
+    <p class="text-success">{{.Success}}</p>
     <form role="form" method="post" action="{{.URL}}">
     <table class="table table-striped">
       <tr>
@@ -13,8 +15,8 @@
       </tr>
       {{range .Picks}}
       <input type="hidden" name="ids" value="{{.Id}}">
-      if {{.Disabled}}<tr class="active">{{else}}<tr>{{end}}
-        <td>{{.Time}}</td>
+      {{if .Disabled}}<tr class="active">{{else}}<tr>{{end}}
+        <td>{{gametime .Time}}</td>
         <td>{{.Away}} {{.AwayNick}}</td>
         <td>{{.Home}} {{.HomeNick}}</td>
         <td>

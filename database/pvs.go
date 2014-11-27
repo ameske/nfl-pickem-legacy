@@ -15,9 +15,16 @@ type Pvs struct {
 	One   int    `db:"one"`
 }
 
-func WeekPvs(db *gorp.DbMap, year, week int) Pvs {
+func WeekPvs(db *gorp.DbMap) Pvs {
 	var pvs Pvs
-	err := db.SelectOne(&pvs, "SELECT pvs.* FROM weeks JOIN years ON years.id = week.year_id JOIN pvs ON weeks.pvs_id = pvs.id WHERE years.year = $1 AN weeks.week = $1", year, week)
+	sql := `SELECT pvs.*
+		FROM weeks
+		JOIN years ON years.id = weeks.year_id
+		JOIN pvs ON pvs.id = weeks.pvs_id
+		WHERE years.year = $1 AND weeks.week = $2`
+
+	year, week := CurrentWeek(db)
+	err := db.SelectOne(&pvs, sql, year, week)
 	if err != nil {
 		log.Fatalf("WeekPvs: %s", err.Error())
 	}
