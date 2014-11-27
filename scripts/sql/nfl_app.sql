@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS weeks (
     id SERIAL PRIMARY KEY,
     year_id integer REFERENCES years ON DELETE CASCADE,
     pvs_id integer REFERENCES pvs,
-    week integer NOT NULL
+    week integer NOT NULL,
+    week_start integer
 );
 
 CREATE TABLE IF NOT EXISTS games (
