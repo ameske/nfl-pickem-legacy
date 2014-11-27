@@ -33,7 +33,7 @@ type FormPick struct {
 }
 
 // WeeklyPicks creates a []Picks representing a user's picks for the given week
-func WeeklyPicks(db *gorp.DbMap, user int64) (picks []*Picks) {
+func weeklyPicks(db *gorp.DbMap, username string) (picks []*Picks) {
 	year, week := CurrentWeek(db)
 
 	sql := `SELECT picks.*
@@ -41,10 +41,31 @@ func WeeklyPicks(db *gorp.DbMap, user int64) (picks []*Picks) {
 		JOIN games ON games.id = picks.game_id
 		JOIN weeks ON weeks.id = games.week_id
 		JOIN years ON years.id = weeks.year_id
-		WHERE years.year = $1 AND weeks.week = $2 AND picks.user_id = $3
+		JOIN users ON users.id = picks.user_id
+		WHERE years.year = $1 AND weeks.week = $2 AND users.email = $3
 		ORDER BY games.date ASC`
 
-	_, err := db.Select(&picks, sql, year, week, user)
+	_, err := db.Select(&picks, sql, year, week, username)
+	if err != nil {
+		log.Fatalf("GetWeeklyPicks: %s", err.Error())
+	}
+
+	return
+}
+
+func weeklySelectedPicks(db *gorp.DbMap, username string) (picks []*Picks) {
+	year, week := CurrentWeek(db)
+
+	sql := `SELECT picks.*
+		FROM picks
+		JOIN games ON games.id = picks.game_id
+		JOIN weeks ON weeks.id = games.week_id
+		JOIN years ON years.id = weeks.year_id
+		JOIN users ON users.id = picks.user_id
+		WHERE years.year = $1 AND weeks.week = $2 AND users.email = $3 AND picks.selection != 0 AND picks.points != 0
+		ORDER BY games.date ASC`
+
+	_, err := db.Select(&picks, sql, year, week, username)
 	if err != nil {
 		log.Fatalf("GetWeeklyPicks: %s", err.Error())
 	}
@@ -53,10 +74,13 @@ func WeeklyPicks(db *gorp.DbMap, user int64) (picks []*Picks) {
 }
 
 // FormPicks gathers the neccessary information needed render a user's pick-em form
-func FormPicks(db *gorp.DbMap, username string) []FormPick {
-	userId := UserId(db, username)
-
-	picks := WeeklyPicks(db, userId)
+func FormPicks(db *gorp.DbMap, username string, selectedOnly bool) []FormPick {
+	var picks []*Picks
+	if selectedOnly {
+		picks = weeklySelectedPicks(db, username)
+	} else {
+		picks = weeklyPicks(db, username)
+	}
 
 	formGames := make([]FormPick, 0)
 	for _, p := range picks {

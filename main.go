@@ -17,7 +17,6 @@ var (
 	store  = sessions.NewCookieStore(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32))
 	db     = database.NflDb()
 	router = mux.NewRouter()
-	config = Config{}
 )
 
 func init() {
@@ -34,22 +33,16 @@ func init() {
 }
 
 func main() {
-	configPath := flag.String("config", "", "Location of config file")
+	emailConfigPath := flag.String("config", "", "Location of config file")
 	flag.Parse()
 
-	if *configPath == "" {
-		log.Fatalf("Config path must be specified")
-		flag.PrintDefaults()
+	if *emailConfigPath == "" {
+		*emailConfigPath = "nfl.yaml"
 	}
 
-	if err := LoadConfig(*configPath); err != nil {
+	if err := LoadEmailConfig(*emailConfigPath); err != nil {
 		log.Fatalf(err.Error())
 	}
-
-	log.Printf("NFL App Setting (Email): %s", config.EmailAddress)
-	log.Printf("NFL App Setting (Password): %s", config.Password)
-	log.Printf("NFL App Setting (SMTP Address): %s", config.SMTPAddress)
-	log.Printf("NFL App Setting (SMTP Port): %s", config.SMTPPort)
 
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
 	log.Fatal(http.ListenAndServe(":61389", router))

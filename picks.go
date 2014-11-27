@@ -15,7 +15,7 @@ import (
 func PicksForm(w http.ResponseWriter, r *http.Request) {
 	user := currentUser(r)
 
-	picks := database.FormPicks(db, user)
+	picks := database.FormPicks(db, user, false)
 
 	e, s := "", ""
 	if context.Get(r, "error") != nil {
@@ -42,7 +42,8 @@ func PicksForm(w http.ResponseWriter, r *http.Request) {
 
 // ProcessPicks validates a user's picks, and then updates the current picks in the database
 func ProcessPicks(w http.ResponseWriter, r *http.Request) {
-	// Gather endpoint information
+	user := currentUser(r)
+
 	r.ParseForm()
 	picks := r.Form["ids"]
 
@@ -74,9 +75,17 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// TODO - Email the user their picks
+	selectedPicks := database.FormPicks(db, user, true)
+	_, week := database.CurrentWeek(db)
+	SendPicksEMail(user,
+		fmt.Sprintf("Current Week %d Picks", week),
+		week,
+		selectedPicks,
+	)
+
 	context.Set(r, "success", "Picks submitted successfully!")
 	PicksForm(w, r)
+
 }
 
 // validate handles server side validation of the point distribution of a submitted
