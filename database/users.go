@@ -62,3 +62,13 @@ func UpdatePassword(db *gorp.DbMap, user string, newPassword []byte) {
 		log.Fatalf("UpdatePassword: %s", err.Error())
 	}
 }
+
+func UsersMap(users []Users) map[int64]Users {
+	um := make(map[int64]Users)
+	for _, u := range users {
+		u := u
+		um[u.Id] = u
+	}
+
+	return um
+}
