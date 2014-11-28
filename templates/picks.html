@@ -14,17 +14,16 @@
         <th>Points</th>
       </tr>
       {{range .Picks}}
-      <input type="hidden" name="ids" value="{{.Id}}">
+      {{if not .Disabled}}<input type="hidden" name="ids" value="{{.Id}}">{{end}}
       {{if .Disabled}}<tr class="active">{{else}}<tr>{{end}}
         <td>{{gametime .Time}}</td>
         <td>{{.Away}} {{.AwayNick}}</td>
         <td>{{.Home}} {{.HomeNick}}</td>
         <td>
             {{if .Disabled}}
-            <select class="form-control" name="{{.Id}}-Selection" disabled="disabled">
+            {{if eq .Selection 1}} {{.Away}}</td> {{else}} {{.Home}}</td> {{end}}
             {{else}}
             <select class="form-control" name="{{.Id}}-Selection">
-            {{end}}
               {{if eq .Selection 1}}
               <option value="1" selected="selected">{{.Away}}</option>
               <option value="2">{{.Home}}</option>
@@ -36,13 +35,13 @@
               <option value="1">{{.Away}}</option>
               <option value="2">{{.Home}}</option>
               {{end}}
-          </select></td>
+            </select></td>
+            {{end}}
         <td>
             {{if .Disabled}}
-            <select class="form-control" name="{{.Id}}-Points" disabled="disabled">
+            {{.Points}} </td>
             {{else}}
-            <select class="form-control" name="{{.Id}}-Points">
-            {{end}}
+            <select class="form-control" name="{{.Id}}-Points">j
               {{if eq .Points 1}}
               <option value="1" selected="selected">1</option>
               <option value="3">3</option>
@@ -70,7 +69,8 @@
               <option value="5">5</option>
               <option value="7">7</option>
               {{end}}
-          </select></td>
+            </select></td>
+            {{end}}
         </td>
       </tr>
       {{end}}

@@ -62,7 +62,7 @@ func weeklySelectedPicks(db *gorp.DbMap, username string) (picks []*Picks) {
 		JOIN weeks ON weeks.id = games.week_id
 		JOIN years ON years.id = weeks.year_id
 		JOIN users ON users.id = picks.user_id
-		WHERE years.year = $1 AND weeks.week = $2 AND users.email = $3 AND picks.selection != 0 AND picks.points != 0
+		WHERE years.year = $1 AND weeks.week = $2 AND users.email = $3 AND picks.selection <> 0 AND picks.points <> 0
 		ORDER BY games.date ASC`
 
 	_, err := db.Select(&picks, sql, year, week, username)

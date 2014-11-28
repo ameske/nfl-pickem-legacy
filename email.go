@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/smtp"
 	"text/template"
 
@@ -18,10 +18,10 @@ var (
 )
 
 type emailConfig struct {
-	emailAddress    string `yaml:"EMAIL_ADDRESS"`
-	password        string `yaml:"PASSWORD"`
-	smtpAddress     string `yaml:"SMTP_ADDRESS"`
-	smtpFullAddress string `yaml:"SMTP_FULL_ADDRESS"`
+	EmailAddress    string `yaml:"EMAIL_ADDRESS"`
+	Password        string `yaml:"PASSWORD"`
+	SMTPAddress     string `yaml:"SMTP_ADDRESS"`
+	SMTPFullAddress string `yaml:"SMTP_FULL_ADDRESS"`
 }
 
 type picksEmail struct {
@@ -44,9 +44,9 @@ func LoadEmailConfig(path string) error {
 	}
 
 	auth = smtp.PlainAuth("",
-		config.emailAddress,
-		config.password,
-		config.smtpAddress,
+		config.EmailAddress,
+		config.Password,
+		config.SMTPAddress,
 	)
 
 	email = template.Must(template.ParseFiles("email.tmpl"))
@@ -57,7 +57,7 @@ func LoadEmailConfig(path string) error {
 func SendPicksEMail(to, subject string, week int, picks []database.FormPick) {
 	pe := picksEmail{
 		To:      to,
-		From:    config.emailAddress,
+		From:    config.EmailAddress,
 		Subject: subject,
 		Week:    week,
 		Picks:   picks,
@@ -66,6 +66,14 @@ func SendPicksEMail(to, subject string, week int, picks []database.FormPick) {
 	var body bytes.Buffer
 	email.Execute(&body, pe)
 
-	ioutil.WriteFile(fmt.Sprintf("%s - %s.txt", to, subject), body.Bytes(), 777)
-	//smtp.SendMail(config.smtpFullAddress, auth, config.emailAddress, []string{to}, body.Bytes())
+	to_s := make([]string, 0)
+	to_s = append(to_s, config.EmailAddress)
+	if config.EmailAddress != to {
+		to_s = append(to_s, to)
+	}
+
+	err := smtp.SendMail(config.SMTPFullAddress, auth, config.EmailAddress, to_s, body.Bytes())
+	if err != nil {
+		log.Printf("Email Error: %s", err.Error())
+	}
 }
