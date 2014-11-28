@@ -1,18 +1,36 @@
 package main
 
 import (
+	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/ameske/go_nfl/database"
 	"github.com/codegangsta/cli"
 	"github.com/coopernurse/gorp"
+	"gopkg.in/yaml.v2"
 )
 
 var (
-	db *gorp.DbMap
+	db     *gorp.DbMap
+	config Config
 )
 
+type Config struct {
+	StaticDir string `yaml:"STATIC_DIR"`
+}
+
 func init() {
+	config := Config{}
+	configBytes, err := ioutil.ReadFile("/opt/ameske/etc/go_nfl/nfl.yaml")
+	if err != nil {
+		log.Fatalf("Error reading config file: %s", err.Error())
+	}
+	err = yaml.Unmarshal(configBytes, &config)
+	if err != nil {
+		log.Fatalf("Error parsing config file: %s", err.Error())
+	}
+
 	db = database.NflDb()
 }
 

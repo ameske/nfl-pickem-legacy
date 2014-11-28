@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -33,14 +32,7 @@ func init() {
 }
 
 func main() {
-	emailConfigPath := flag.String("config", "", "Location of config file")
-	flag.Parse()
-
-	if *emailConfigPath == "" {
-		*emailConfigPath = "nfl.yaml"
-	}
-
-	if err := LoadEmailConfig(*emailConfigPath); err != nil {
+	if err := LoadEmailConfig("/opt/ameske/etc/go_nfl/go_nfl.yaml"); err != nil {
 		log.Fatalf(err.Error())
 	}
 
