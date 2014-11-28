@@ -1,0 +1,15 @@
+To: {{.To}}
+From: {{.From}}
+Subject: {{.Subject}}
+
+Here are the picks that I currently have recorded in my system for Week {{.Week}}!
+
+Please double-check and make sure there are no errors. E-mail me if you find any problems.
+
+{{range .Picks}}
+{{.AwayNick}}/{{.HomeNick}} - {{if eq .Selection 1}}{{.AwayNick}}{{else}}{{.HomeNick}}{{end}} {{.Points}}
+{{end}}
+
+Good luck!
+
+-Kyle Ames Bot

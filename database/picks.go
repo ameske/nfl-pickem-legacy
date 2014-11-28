@@ -33,7 +33,7 @@ type FormPick struct {
 }
 
 // WeeklyPicks creates a []Picks representing a user's picks for the given week
-func weeklyPicks(db *gorp.DbMap, username string) (picks []*Picks) {
+func WeeklyPicks(db *gorp.DbMap, username string) (picks []*Picks) {
 	year, week := CurrentWeek(db)
 
 	sql := `SELECT picks.*
@@ -79,7 +79,7 @@ func FormPicks(db *gorp.DbMap, username string, selectedOnly bool) []FormPick {
 	if selectedOnly {
 		picks = weeklySelectedPicks(db, username)
 	} else {
-		picks = weeklyPicks(db, username)
+		picks = WeeklyPicks(db, username)
 	}
 
 	formGames := make([]FormPick, 0)
