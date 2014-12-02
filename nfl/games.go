@@ -60,10 +60,12 @@ func schedule(c *cli.Context) {
 		// Note: Manually update year id!
 		weekId, err := db.SelectInt("SELECT id FROM weeks WHERE week = $1 AND year_id = 1", game.Week)
 		temp := database.Games{
-			WeekId: weekId,
-			HomeId: teamsMap[game.Home],
-			AwayId: teamsMap[game.Away],
-			Date:   game.Date,
+			WeekId:    weekId,
+			HomeId:    teamsMap[game.Home],
+			AwayId:    teamsMap[game.Away],
+			Date:      game.Date,
+			HomeScore: -1,
+			AwayScore: -1,
 		}
 		err = db.Insert(&temp)
 		if err != nil {
