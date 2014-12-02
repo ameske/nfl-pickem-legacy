@@ -15,9 +15,15 @@ complete it. You are more than welcome to use any part of the application that y
 
 # Project Status Updates
 
-Current Development:
+Currently Working On:
 
-- Pick form processing
+- Automation
+
+December 1, 2014:
+
+- Picks form processing
+- Separate admin scripts are now rolled into a command/subcommand CLI app
+- Modifications to the admin scripts to allow automation of the week-to-week tasks of the app
 
 November 25, 2014:
 
