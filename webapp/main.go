@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 
 	"github.com/ameske/go_nfl/database"
 	"github.com/gorilla/mux"
@@ -49,7 +51,21 @@ func Index(w http.ResponseWriter, r *http.Request) {
 func Results(w http.ResponseWriter, r *http.Request) {
 	year, week := yearWeek(r)
 	u := currentUser(r)
-	Fetch(fmt.Sprintf("%d-Week%d-Results.html", year, week)).Execute(w, u, nil)
+
+	// To support this page updating throughout the day, this either needs to be
+	// generated dynamically each time, or we will have to be rude and parse the
+	// template each time. The previous model of serving static content just doesn't work.
+	name := fmt.Sprintf("%d-Week%d-Results.html", year, week)
+	t := template.New("_base.html").Funcs(funcs)
+	t = template.Must(t.ParseFiles("templates/_base.html", "templates/navbar.html", filepath.Join("templates", name)))
+	data := struct {
+		User    string
+		Content interface{}
+	}{
+		u,
+		nil,
+	}
+	t.Execute(w, data)
 }
 
 func Standings(w http.ResponseWriter, r *http.Request) {

@@ -25,10 +25,18 @@ type ResultsTableRow struct {
 }
 
 type UserPicks struct {
-	Pick    string
-	Points  int
-	Correct bool
+	Pick   string
+	Points int
+	Status PickStatus
 }
+
+type PickStatus int
+
+const (
+	Correct PickStatus = iota
+	Incorrect
+	Pending
+)
 
 /*
 * Creates an HTML file based on a template that displays the results for a given week.
@@ -67,7 +75,14 @@ func results(c *cli.Context) {
 				tr.Picks[j].Pick = fmt.Sprintf("%s", teams[games[i].HomeId])
 			}
 			tr.Picks[j].Points = p[i].Points
-			tr.Picks[j].Correct = p[i].Correct
+
+			if games[i].HomeScore == -1 && games[i].AwayScore == -1 {
+				tr.Picks[j].Status = Pending
+			} else if p[i].Correct {
+				tr.Picks[j].Status = Correct
+			} else {
+				tr.Picks[j].Status = Incorrect
+			}
 		}
 		rows[i] = tr
 	}

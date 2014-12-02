@@ -43,6 +43,11 @@ func grade(c *cli.Context) {
 
 		total := 0
 		for _, p := range picks {
+			// Ignore all games that haven't finished yet
+			if gamesMap[p.GameId].HomeScore == -1 && gamesMap[p.GameId].AwayScore == -1 {
+				continue
+			}
+
 			if gamesMap[p.GameId].HomeScore == gamesMap[p.GameId].AwayScore {
 				p.Correct = true
 				p.Points = int(math.Floor(float64(p.Points) / 2))
@@ -55,8 +60,6 @@ func grade(c *cli.Context) {
 			} else if p.Selection == 1 {
 				p.Correct = true
 				total += p.Points
-			} else {
-				p.Correct = false
 			}
 			_, err := db.Update(&p)
 			if err != nil {

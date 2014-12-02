@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
+	"os/exec"
+	"strconv"
 
 	"github.com/ameske/go_nfl/database"
 	"github.com/codegangsta/cli"
@@ -26,15 +26,26 @@ func scores(c *cli.Context) {
 
 	db := database.NflDb()
 
-	resultBytes, err := ioutil.ReadFile(fmt.Sprintf("../json/2014/2014-Week%d-Results.json", week))
+	cmd := exec.Command("./weeklyScores", strconv.Itoa(year), strconv.Itoa(week))
+	pipe, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Fatalf("%s", err.Error())
+		log.Fatalf("Pipe: %s", err.Error())
 	}
 
-	results := make([]*ResultsJson, 0)
-	err = json.Unmarshal(resultBytes, &results)
+	err = cmd.Start()
 	if err != nil {
-		log.Fatalf("%s", err.Error())
+		log.Fatalf("Start: %s", err.Error())
+	}
+
+	var results []ResultsJson
+	err = json.NewDecoder(pipe).Decode(&results)
+	if err != nil {
+		log.Fatalf("Decode: %s", err.Error())
+	}
+
+	err = cmd.Wait()
+	if err != nil {
+		log.Fatalf("Wait: %s", err.Error())
 	}
 
 	for _, result := range results {

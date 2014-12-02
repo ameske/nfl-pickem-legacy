@@ -23,4 +23,7 @@ _testmain.go
 *.test
 
 go_nfl
-website/nfl.yaml
+webapp/nfl.yaml
+webapp/webapp
+nfl/nfl
+scripts/sql/*.bak

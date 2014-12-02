@@ -29,7 +29,7 @@ func CurrentWeek(db *gorp.DbMap) (year, week int) {
 	t := time.Now().Unix()
 	year = time.Now().Year()
 
-	err := db.SelectOne(&week, "SELECT MAX(week) FROM weeks JOIN years ON years.id = weeks.year_id WHERE year = $1 AND week_start < $2", year, t)
+	err := db.SelectOne(&week, "SELECT MAX(week) FROM weeks JOIN years ON years.id = weeks.year_id WHERE year = $1 AND $2 > weeks.week_start", year, t)
 	if err != nil {
 		log.Fatalf("CurrentWeek: %s", err.Error())
 	}
