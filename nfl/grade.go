@@ -35,7 +35,7 @@ func grade(c *cli.Context) {
 
 	// For each user, score their picks for this week and print their total
 	for u, _ := range usersMap {
-		var picks []database.Picks
+		var picks []*database.Picks
 		_, err := db.Select(&picks, "SELECT picks.* FROM picks INNER JOIN games ON picks.game_id = games.id WHERE games.week_id = $1 AND picks.user_id = $2", weekId, u)
 		if err != nil {
 			log.Fatalf("Picks: %s", err.Error())
@@ -57,11 +57,14 @@ func grade(c *cli.Context) {
 				total += p.Points
 			} else if gamesMap[p.GameId].HomeScore > gamesMap[p.GameId].AwayScore && p.Selection == 1 {
 				p.Correct = false
-			} else if p.Selection == 1 {
+			} else if gamesMap[p.GameId].AwayScore > gamesMap[p.GameId].HomeScore && p.Selection == 2 {
+				p.Correct = false
+			} else {
 				p.Correct = true
 				total += p.Points
 			}
-			_, err := db.Update(&p)
+
+			_, err := db.Update(p)
 			if err != nil {
 				log.Fatalf("Update: %s", err.Error())
 			}

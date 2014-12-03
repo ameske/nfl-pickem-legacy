@@ -24,11 +24,23 @@ def home_team(tag):
 def away_team(tag):
     return tag.has_attr('class') and "team-name" in tag['class'] and "away" in tag['class']
 
+def home_team_lost(tag):
+    return tag.has_attr('class') and "team-name" in tag['class'] and "home" in tag['class'] and "lost" in tag['class']
+
+def away_team_lost(tag):
+    return tag.has_attr('class') and "team-name" in tag['class'] and "away" in tag['class'] and "lost" in tag['class']
+
 def home_team_score(tag):
     return tag.has_attr('class') and "team-score" in tag['class'] and "home" in tag['class']
 
 def away_team_score(tag):
     return tag.has_attr('class') and "team-score" in tag['class'] and "away" in tag['class']
+
+def home_team_score_lost(tag):
+    return tag.has_attr('class') and "team-score" in tag['class'] and "home" in tag['class'] and "lost" in tag['class']
+
+def away_team_score_lost(tag):
+    return tag.has_attr('class') and "team-score" in tag['class'] and "away" in tag['class'] and "lost" in tag['class']
 
 def get_results(year, week_no):
     #FETCH THE HTML WITH THE SCORES EMBEDDED
