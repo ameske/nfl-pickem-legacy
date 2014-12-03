@@ -53,6 +53,24 @@ func WeeklyPicks(db *gorp.DbMap, username string) (picks []*Picks) {
 	return
 }
 
+func WeeklyPicksYearWeek(db *gorp.DbMap, username string, year, week int) (picks []*Picks) {
+	sql := `SELECT picks.*
+		FROM picks
+		JOIN games ON games.id = picks.game_id
+		JOIN weeks ON weeks.id = games.week_id
+		JOIN years ON years.id = weeks.year_id
+		JOIN users ON users.id = picks.user_id
+		WHERE years.year = $1 AND weeks.week = $2 AND users.email = $3
+		ORDER BY games.date ASC`
+
+	_, err := db.Select(&picks, sql, year, week, username)
+	if err != nil {
+		log.Fatalf("GetWeeklyPicks: %s", err.Error())
+	}
+
+	return
+}
+
 func weeklySelectedPicks(db *gorp.DbMap, username string) (picks []*Picks) {
 	year, week := CurrentWeek(db)
 

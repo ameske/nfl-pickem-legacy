@@ -44,7 +44,8 @@ func main() {
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	u := currentUser(r)
-	s := database.Standings(db, 2014, 12)
+	year, week := database.CurrentWeek(db)
+	s := database.Standings(db, year, week)
 	Fetch("index.html").Execute(w, u, s)
 }
 

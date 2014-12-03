@@ -55,7 +55,7 @@ func results(c *cli.Context) {
 
 	picks := make([][]*database.Picks, len(users))
 	for i, u := range users {
-		picks[i] = database.WeeklyPicks(db, u.Email)
+		picks[i] = database.WeeklyPicksYearWeek(db, u.Email, year, week)
 		reorderPicks(games, picks[i])
 	}
 
