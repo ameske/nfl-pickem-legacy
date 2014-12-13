@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"path/filepath"
 	"sync"
 	"time"
 )
@@ -50,7 +49,7 @@ func Fetch(name string) *GoNflTemplate {
 	}
 
 	t := template.New("_base.html").Funcs(funcs)
-	t = template.Must(t.ParseFiles("templates/_base.html", "templates/navbar.html", filepath.Join("templates", name)))
+	t = template.Must(t.ParseFiles("/opt/ameske/gonfl/templates/_base.html", "/opt/ameske/gonfl/templates/navbar.html", "/opt/ameske/gonfl/templates/"+name))
 	cache[name] = t
 
 	return &GoNflTemplate{t: t}

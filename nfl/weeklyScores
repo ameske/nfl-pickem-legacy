@@ -72,9 +72,6 @@ def main():
   week = int(sys.argv[2])
   results = get_results(int(year), int(week))
   print json.dumps(results, indent=4, separators=(',', ': '))
-  #fd = open('{0}-Week{1}-Results.json'.format(year, week), 'w')
-  #fd.write(json.dumps(results, indent=4, separators=(',', ': ')))
-  #fd.close()
 
 if __name__ == "__main__":
   main()

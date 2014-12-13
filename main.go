@@ -1,21 +1,22 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"path/filepath"
 
 	"github.com/ameske/go_nfl/database"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
+	"gopkg.in/yaml.v2"
 )
 
 // For now, we will let all of these things be global since it's easier
 var (
-	store  = sessions.NewCookieStore(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32))
+	store  *sessions.CookieStore
 	db     = database.NflDb()
 	router = mux.NewRouter()
 )
@@ -34,12 +35,44 @@ func init() {
 }
 
 func main() {
-	if err := LoadEmailConfig("/opt/ameske/etc/go_nfl/go_nfl.yaml"); err != nil {
+	if err := LoadEmailConfig("/opt/ameske/gonfl/go_nfl.yaml"); err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	if err := LoadWebappConfig("/opt/ameske/gonfl/nfl.yaml"); err != nil {
 		log.Fatalf(err.Error())
 	}
 
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
 	log.Fatal(http.ListenAndServe(":61389", router))
+}
+
+func LoadWebappConfig(path string) error {
+	configBytes, err := ioutil.ReadFile(path)
+
+	keys := struct {
+		AuthKey    string `yaml:"AuthKey"`
+		EncryptKey string `yaml:"EncryptKey"`
+	}{}
+
+	err = yaml.Unmarshal(configBytes, &keys)
+	if err != nil {
+		return err
+	}
+
+	decodedAuth, err := base64.StdEncoding.DecodeString(keys.AuthKey)
+	if err != nil {
+		return err
+	}
+
+	decodedEncrypt, err := base64.StdEncoding.DecodeString(keys.EncryptKey)
+	if err != nil {
+		return err
+	}
+
+	store = sessions.NewCookieStore(decodedAuth, decodedEncrypt)
+
+	return nil
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -56,9 +89,9 @@ func Results(w http.ResponseWriter, r *http.Request) {
 	// To support this page updating throughout the day, this either needs to be
 	// generated dynamically each time, or we will have to be rude and parse the
 	// template each time. The previous model of serving static content just doesn't work.
-	name := fmt.Sprintf("%d-Week%d-Results.html", year, week)
+	name := fmt.Sprintf("/opt/ameske/gonfl/templates/%d-Week%d-Results.html", year, week)
 	t := template.New("_base.html").Funcs(funcs)
-	t = template.Must(t.ParseFiles("templates/_base.html", "templates/navbar.html", filepath.Join("templates", name)))
+	t = template.Must(t.ParseFiles("/opt/ameske/gonfl/templates/_base.html", "/opt/ameske/gonfl/templates/navbar.html", name))
 	data := struct {
 		User    string
 		Content interface{}
