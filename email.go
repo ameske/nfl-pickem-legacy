@@ -49,7 +49,7 @@ func LoadEmailConfig(path string) error {
 		config.SMTPAddress,
 	)
 
-	email = template.Must(template.ParseFiles("email.tmpl"))
+	email = template.Must(template.ParseFiles("/opt/ameske/gonfl/templates/email.tmpl"))
 
 	return err
 }
