@@ -108,7 +108,7 @@ func results(c *cli.Context) {
 	data.End = "{{end}}"
 
 	t := template.New("results.html")
-	t = template.Must(t.ParseFiles("results.html"))
+	t = template.Must(t.ParseFiles("/opt/ameske/gonfl/templates/results.html"))
 
 	weekResults, err := os.Create(fmt.Sprintf("%d-Week%d-Results.html", year, week))
 	if err != nil {
