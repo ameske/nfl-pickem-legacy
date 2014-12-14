@@ -26,7 +26,7 @@ func scores(c *cli.Context) {
 
 	db := database.NflDb()
 
-	cmd := exec.Command("./weeklyScores", strconv.Itoa(year), strconv.Itoa(week))
+	cmd := exec.Command("weeklyScores", strconv.Itoa(year), strconv.Itoa(week))
 	pipe, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatalf("Pipe: %s", err.Error())

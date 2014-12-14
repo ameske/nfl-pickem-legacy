@@ -42,8 +42,9 @@ func grade(c *cli.Context) {
 
 		total := 0
 		for _, p := range picks {
-			// Ignore all games that haven't finished yet
+			// Ignore all games that haven't finished yet - clean up points though
 			if gamesMap[p.GameId].HomeScore == -1 && gamesMap[p.GameId].AwayScore == -1 {
+				p.Correct = false
 				continue
 			}
 
