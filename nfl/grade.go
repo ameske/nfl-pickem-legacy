@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math"
 
@@ -12,7 +11,7 @@ import (
 func grade(c *cli.Context) {
 	year, week := c.Int("year"), c.Int("week")
 	if year == -1 || week == -1 {
-		log.Fatalf("year and week are required arguments")
+		year, week = database.CurrentWeek(db)
 	}
 
 	weekId := database.WeekId(db, year, week)
@@ -70,6 +69,5 @@ func grade(c *cli.Context) {
 			}
 		}
 
-		fmt.Printf("%s: %d points\n", usersMap[u].FirstName, total)
 	}
 }

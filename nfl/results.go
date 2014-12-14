@@ -44,7 +44,7 @@ const (
 func results(c *cli.Context) {
 	year, week := c.Int("year"), c.Int("week")
 	if week == -1 || year == -1 {
-		log.Fatalf("Week and year must be provided explicitly.\n")
+		year, week = database.CurrentWeek(db)
 	}
 
 	db := database.NflDb()

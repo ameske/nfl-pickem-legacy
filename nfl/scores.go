@@ -21,7 +21,7 @@ type ResultsJson struct {
 func scores(c *cli.Context) {
 	year, week := c.Int("year"), c.Int("week")
 	if year == -1 || week == -1 {
-		log.Fatalf("year and week are required")
+		year, week = database.CurrentWeek(db)
 	}
 
 	db := database.NflDb()
