@@ -53,6 +53,10 @@ def get_results(year, week_no):
     away_team_scores    = [ str(tag.string) for tag in resultsHTML.find_all(away_team_score) ]
     results = zip(home_teams, home_team_scores, away_team_scores)
     
+    # Slice out the NFL's "next game up" row in the schedule
+    if len(home_teams) > 17:
+        home_teams = home_teams[1:]
+
     #JSON'IFY THE RESULTS
     games = []
     for result in results:
