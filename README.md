@@ -17,7 +17,12 @@ complete it. You are more than welcome to use any part of the application that y
 
 Currently Working On:
 
-- Automation
+- User feedback improvements
+
+December 14, 2014:
+
+- Automation: results update after Thursday night, Sunday 1:00 games, Sunday 4:00 games, SNF, and MNF.
+- More improvements to the nfl admin CLI app
 
 December 1, 2014:
 
