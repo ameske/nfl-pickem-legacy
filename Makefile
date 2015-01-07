@@ -1,8 +1,12 @@
-all: build install
 build:
-	go build 
+	cd cli && go build -o nfl && mv nfl ..
+	cd server && go build -o nflserver && mv nflserver ..
 
 install: build
-	go build
-	cp templates/* /opt/ameske/go_nfl/templates/
-	cp go_nfl /opt/ameske/go_nfl/
+	mv opt/ameske/gonfl/templates /opt/ameske/gonfl/templates
+	mv nfl /opt/ameske/gonfl/nfl
+	mv nflserver /opt/ameske/gonfl/nflserver
+	
+clean:
+	rm nfl
+	rm nflserver

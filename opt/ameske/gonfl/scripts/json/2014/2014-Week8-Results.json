@@ -1,0 +1,107 @@
+[
+    {
+        "week": 8,
+        "home": "Broncos",
+        "away_score": 21,
+        "home_score": 35,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Falcons",
+        "away_score": 22,
+        "home_score": 21,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Buccaneers",
+        "away_score": 19,
+        "home_score": 13,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Jets",
+        "away_score": 43,
+        "home_score": 23,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Patriots",
+        "away_score": 23,
+        "home_score": 51,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Panthers",
+        "away_score": 13,
+        "home_score": 9,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Jaguars",
+        "away_score": 27,
+        "home_score": 13,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Bengals",
+        "away_score": 24,
+        "home_score": 27,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Titans",
+        "away_score": 30,
+        "home_score": 16,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Chiefs",
+        "away_score": 7,
+        "home_score": 34,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Cardinals",
+        "away_score": 20,
+        "home_score": 24,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Steelers",
+        "away_score": 34,
+        "home_score": 51,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Browns",
+        "away_score": 13,
+        "home_score": 23,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Saints",
+        "away_score": 23,
+        "home_score": 44,
+        "year": 2014
+    },
+    {
+        "week": 8,
+        "home": "Cowboys",
+        "away_score": 20,
+        "home_score": 17,
+        "year": 2014
+    }
+]
