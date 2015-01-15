@@ -10,23 +10,22 @@ import (
 	"github.com/gorilla/context"
 )
 
-// LoginForm renders the login form, populating the form action with the desired destination
-// if the user arrived at this endpoint by requesting a protected endpoint while not authenticated.
-func LoginForm(w http.ResponseWriter, r *http.Request) {
-	n := context.Get(r, "next")
-	if n == nil {
-		Fetch("login.html").Execute(w, "", []string{"", "/login"})
-	} else {
-		next := n.(string)
-		next64 := base64.StdEncoding.EncodeToString([]byte(next))
-		Fetch("login.html").Execute(w, "", []string{"", fmt.Sprintf("/login?next=%s", string(next64))})
-	}
-}
-
 // Login processes the form post, determining whether or not the user succssfully logged in. If the login
 // was a success the user is redirected to their desired endpoint, if such an endpoint exists. Otherwise,
 // the user is taken to the login page.
 func Login(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		n := context.Get(r, "next")
+		if n == nil {
+			Fetch("login.html").Execute(w, "", []string{"", "/login"})
+		} else {
+			next := n.(string)
+			next64 := base64.StdEncoding.EncodeToString([]byte(next))
+			Fetch("login.html").Execute(w, "", []string{"", fmt.Sprintf("/login?next=%s", string(next64))})
+		}
+		return
+	}
+
 	r.ParseForm()
 	next := r.FormValue("next")
 

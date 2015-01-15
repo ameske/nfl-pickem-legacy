@@ -28,6 +28,6 @@ func (p *ProtectedEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		context.Set(r, "next", r.URL.String())
-		LoginForm(w, r)
+		http.Redirect(w, r, "/login", 302)
 	}
 }

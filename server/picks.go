@@ -77,7 +77,7 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 
 	selectedPicks := database.FormPicks(db, user, true)
 	_, week := database.CurrentWeek(db)
-	SendPicksEMail(user,
+	SendPicksEmail(user,
 		fmt.Sprintf("Current Week %d Picks", week),
 		week,
 		selectedPicks,
@@ -85,7 +85,6 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 
 	context.Set(r, "success", "Picks submitted successfully!")
 	PicksForm(w, r)
-
 }
 
 // validate handles server side validation of the point distribution of a submitted

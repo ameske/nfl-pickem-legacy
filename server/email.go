@@ -2,27 +2,19 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
 	"log"
 	"net/smtp"
 	"text/template"
 
 	"github.com/ameske/go_nfl/database"
-	"gopkg.in/yaml.v2"
 )
 
 var (
-	config = emailConfig{}
-	auth   smtp.Auth
-	email  *template.Template
+	auth       smtp.Auth
+	sendAddr   string
+	smtpServer string
+	email      *template.Template
 )
-
-type emailConfig struct {
-	EmailAddress    string `yaml:"EMAIL_ADDRESS"`
-	Password        string `yaml:"PASSWORD"`
-	SMTPAddress     string `yaml:"SMTP_ADDRESS"`
-	SMTPFullAddress string `yaml:"SMTP_FULL_ADDRESS"`
-}
 
 type picksEmail struct {
 	To      string
@@ -32,32 +24,23 @@ type picksEmail struct {
 	Picks   []database.FormPick
 }
 
-func LoadEmailConfig(path string) error {
-	configBytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	err = yaml.Unmarshal(configBytes, &config)
-	if err != nil {
-		return err
-	}
-
+func configureEmail(config Config) {
 	auth = smtp.PlainAuth("",
-		config.EmailAddress,
-		config.Password,
-		config.SMTPAddress,
+		config.Email.SendAsAddress,
+		config.Email.Password,
+		config.Email.SMTPAddress,
 	)
 
 	email = template.Must(template.ParseFiles("/opt/ameske/gonfl/templates/email.tmpl"))
 
-	return err
+	sendAddr = config.Email.SendAsAddress
+	smtpServer = config.Email.SMTPFullAddress
 }
 
-func SendPicksEMail(to, subject string, week int, picks []database.FormPick) {
+func SendPicksEmail(to, subject string, week int, picks []database.FormPick) {
 	pe := picksEmail{
 		To:      to,
-		From:    config.EmailAddress,
+		From:    sendAddr,
 		Subject: subject,
 		Week:    week,
 		Picks:   picks,
@@ -67,12 +50,12 @@ func SendPicksEMail(to, subject string, week int, picks []database.FormPick) {
 	email.Execute(&body, pe)
 
 	to_s := make([]string, 0)
-	to_s = append(to_s, config.EmailAddress)
-	if config.EmailAddress != to {
+	to_s = append(to_s, sendAddr)
+	if sendAddr != to {
 		to_s = append(to_s, to)
 	}
 
-	err := smtp.SendMail(config.SMTPFullAddress, auth, config.EmailAddress, to_s, body.Bytes())
+	err := smtp.SendMail(smtpServer, auth, sendAddr, to_s, body.Bytes())
 	if err != nil {
 		log.Printf("Email Error: %s", err.Error())
 	}
