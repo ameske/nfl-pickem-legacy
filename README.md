@@ -17,7 +17,8 @@ complete it. You are more than welcome to use any part of the application that y
 
 Currently Working On:
 
-- User feedback improvements
+- Feeback from users during season
+- Code cleanup/refactor from "get it in production" coding
 
 December 14, 2014:
 
@@ -36,7 +37,7 @@ November 25, 2014:
 - Standings pages for each week
 - Changed the home page to always show the current standings
 - A script to generate the static results page for a given week
-- 
+
 November 7, 2014: 
 
 - Login and Logout
