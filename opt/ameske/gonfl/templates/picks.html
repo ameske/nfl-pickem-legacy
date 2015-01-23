@@ -42,12 +42,7 @@
             {{.Points}} </td>
             {{else}}
             <select class="form-control" name="{{.Id}}-Points">j
-              {{if eq .Points 1}}
-              <option value="1" selected="selected">1</option>
-              <option value="3">3</option>
-              <option value="5">5</option>
-              <option value="7">7</option>
-              {{else if eq .Points 3}}
+              {{if eq .Points 3}}
               <option value="1">1</option>
               <option value="3" selected="selected">3</option>
               <option value="5">5</option>
@@ -63,8 +58,7 @@
               <option value="5">5</option>
               <option value="7" selected="selected">7</option>
               {{else}}
-              <option value="0" selected="selected">--Points--</option>
-              <option value="1">1</option>
+              <option value="1" selected="selected">1</option>
               <option value="3">3</option>
               <option value="5">5</option>
               <option value="7">7</option>

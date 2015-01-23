@@ -66,18 +66,21 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update the picks in the database based on the user's selection
+	// Update the picks in the database based on the user's selection, ignoring unselected picks
 	for _, p := range pickedGames {
 		id, _ := strconv.ParseInt(p, 10, 64)
+
+		selection, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Selection", p)), 10, 32)
+		if selection == 0 {
+			continue
+		}
+		points, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", p)), 10, 32)
 
 		var pick database.Picks
 		err := db.SelectOne(&pick, "SELECT * FROM picks WHERE id = $1", id)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-
-		selection, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Selection", p)), 10, 32)
-		points, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", p)), 10, 32)
 
 		pick.Selection = int(selection)
 		pick.Points = int(points)
@@ -129,8 +132,13 @@ func validate(user string, updatedPicks []string, r *http.Request) (threes, five
 		}
 	}
 
-	// Add all of the updated picks to the current "view" of the user's picks
+	// Add all of the updated and selected picks to the current "view" of the user's picks
 	for _, up := range updatedPicks {
+		selection, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Selection", up)), 10, 32)
+		if selection == 0 {
+			continue
+		}
+
 		points, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", up)), 10, 32)
 		currentPicks = append(currentPicks, database.FormPick{
 			Points: int(points),
