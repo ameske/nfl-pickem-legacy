@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"net/http"
@@ -45,16 +46,28 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 	user := currentUser(r)
 
 	r.ParseForm()
-	picks := r.Form["ids"]
+	pickedGames := r.Form["ids"]
 
-	if !validate(picks, r) {
-		context.Set(r, "error", "Invalid picks")
+	if three, five, seven := validate(user, pickedGames, r); !(three && five && seven) {
+		var message bytes.Buffer
+		message.WriteString("Invalid Picks: ")
+		if !three {
+			message.WriteString("Too many three point games. ")
+		}
+		if !five {
+			message.WriteString("Too many five point games. ")
+		}
+		if !seven {
+			message.WriteString("Too many seven point games. ")
+		}
+
+		context.Set(r, "error", message.String())
 		PicksForm(w, r)
 		return
 	}
 
 	// Update the picks in the database based on the user's selection
-	for _, p := range picks {
+	for _, p := range pickedGames {
 		id, _ := strconv.ParseInt(p, 10, 64)
 
 		var pick database.Picks
@@ -90,7 +103,7 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 // validate handles server side validation of the point distribution of a submitted
 // point set. It allows users to "under-point" their picks to allow them to submit
 // games at their leisure.
-func validate(picks []string, r *http.Request) bool {
+func validate(user string, updatedPicks []string, r *http.Request) (threes, fives, sevens bool) {
 	pvs := database.WeekPvs(db)
 
 	one := 0
@@ -98,9 +111,35 @@ func validate(picks []string, r *http.Request) bool {
 	five := 0
 	seven := 0
 
-	for _, p := range picks {
-		tmp, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", p)), 10, 32)
-		switch tmp {
+	currentPicks := make([]database.FormPick, 0, 16)
+
+	// Add all of the locked old picks to the current "view" of the user's picks
+	oldPicks := database.FormPicks(db, user, true)
+	for _, op := range oldPicks {
+		locked := true
+		for _, up := range updatedPicks {
+			pickId, _ := strconv.ParseInt(up, 10, 32)
+			if op.Id == pickId {
+				locked = false
+			}
+		}
+
+		if locked {
+			currentPicks = append(currentPicks, op)
+		}
+	}
+
+	// Add all of the updated picks to the current "view" of the user's picks
+	for _, up := range updatedPicks {
+		points, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", up)), 10, 32)
+		currentPicks = append(currentPicks, database.FormPick{
+			Points: int(points),
+		})
+	}
+
+	// Verify that we still have a valid point distribution
+	for _, p := range currentPicks {
+		switch p.Points {
 		case 1:
 			one += 1
 		case 3:
@@ -112,9 +151,5 @@ func validate(picks []string, r *http.Request) bool {
 		}
 	}
 
-	if three > pvs.Three || five > pvs.Five || seven > pvs.Seven {
-		return false
-	}
-
-	return true
+	return three > pvs.Three, five > pvs.Five, seven > pvs.Seven
 }
