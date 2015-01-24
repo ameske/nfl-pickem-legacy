@@ -2,14 +2,16 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
 )
 
-func NflDb() *gorp.DbMap {
-	db, err := sql.Open("postgres", "host=/run/postgresql user=nfl database=nfl_app sslmode=disable")
+func NflDb(conn string) *gorp.DbMap {
+	fullConnString := fmt.Sprintf("%s user=nfl databse=nfl_app sslmode=disable", conn)
+	db, err := sql.Open("postgres", fullConnString)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}

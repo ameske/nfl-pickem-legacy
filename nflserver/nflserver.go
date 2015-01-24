@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/ameske/go_nfl/database"
+	"github.com/coopernurse/gorp"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
@@ -13,7 +14,7 @@ import (
 // For now, we will let all of these things be global since it's easier
 var (
 	store  *sessions.CookieStore
-	db     = database.NflDb()
+	db     *gorp.DbMap
 	router = mux.NewRouter()
 )
 
@@ -21,6 +22,7 @@ func init() {
 	// App configuration
 	config := loadConfig("/opt/ameske/gonfl/conf.json")
 	configureSessionStore(config)
+	configureDb(config)
 	configureEmail(config)
 
 	// HTTP Server configuration
@@ -37,6 +39,10 @@ func init() {
 func main() {
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
 	log.Fatal(http.ListenAndServe(":61389", router))
+}
+
+func configureDb(config Config) {
+	db = database.NflDb(config.PostgresPort)
 }
 
 func configureSessionStore(config Config) {

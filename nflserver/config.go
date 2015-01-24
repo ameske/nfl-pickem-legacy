@@ -12,8 +12,9 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	AuthKey    string `json:"authKey"`
-	EncryptKey string `json:"encryptKey"`
+	AuthKey            string `json:"authKey"`
+	EncryptKey         string `json:"encryptKey"`
+	PostgresConnString string `json:"postgresConnString"`
 }
 
 type EmailConfig struct {
