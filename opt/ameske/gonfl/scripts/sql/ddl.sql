@@ -5,6 +5,7 @@
 * Last Updated: September 7, 2014
 */
 
+CREATE ROLE nfl WITH LOGIN;
 CREATE DATABASE nfl_app WITH OWNER nfl;
 \c nfl_app;
 
