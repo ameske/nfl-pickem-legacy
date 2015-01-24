@@ -1,0 +1,14 @@
+{
+  "server" : {
+    "authKey" : ,
+    "encryptKey" : ,
+    "postgresConnString" : "host=/run/postgresql",
+  },
+  "email" : {
+    "sendAsAddress" : ,
+    "passwoed" : ,
+    "smtpAddress" : ,
+    "smtpFullAddress" : ,
+  }
+}
+
