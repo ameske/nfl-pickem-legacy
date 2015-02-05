@@ -42,7 +42,7 @@ func main() {
 }
 
 func configureDb(config Config) {
-	db = database.NflDb(config.PostgresPort)
+	db = database.NflDb(config.Server.PostgresConnString)
 }
 
 func configureSessionStore(config Config) {

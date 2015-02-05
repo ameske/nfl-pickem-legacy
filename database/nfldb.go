@@ -10,7 +10,7 @@ import (
 )
 
 func NflDb(conn string) *gorp.DbMap {
-	fullConnString := fmt.Sprintf("%s user=nfl databse=nfl_app sslmode=disable", conn)
+	fullConnString := fmt.Sprintf("%s user=nfl database=nfl_app sslmode=disable", conn)
 	db, err := sql.Open("postgres", fullConnString)
 	if err != nil {
 		log.Fatalf(err.Error())

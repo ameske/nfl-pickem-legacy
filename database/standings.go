@@ -16,6 +16,8 @@ type StandingsPage struct {
 // requested year
 func Standings(db *gorp.DbMap, year, week int) []*StandingsPage {
 	var sql string
+
+	// If it's the first week, we of course cannot deduct the lowest week yet
 	if week == 1 {
 		sql = `SELECT temp.first_name, SUM(temp.total) AS points
 		FROM 
