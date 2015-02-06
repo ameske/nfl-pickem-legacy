@@ -62,10 +62,10 @@
             {{if eq "" .}}
             <li><a href="/login">Login</a></li>
             {{else}}
-            <li><a href="/picks">{{.}}</a></li>
-            <li><a href="/changePassword">Change Password</a></li>
-            <li><a href="/logout">Logout</a></li>
             <li><a href="/picks">Picks</a></li>
+            <li><a href="/changePassword">Change Password</a></li>
+            <li><a href="/picks">{{.}}</a></li>
+            <li><a href="/logout">Logout</a></li>
             {{end}}
           </ul>
         </div><!--/.nav-collapse -->
