@@ -1,14 +1,11 @@
 package main
 
 import (
-	"io/ioutil"
-	"log"
 	"os"
 
 	"github.com/ameske/go_nfl/database"
 	"github.com/codegangsta/cli"
 	"github.com/coopernurse/gorp"
-	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -21,17 +18,18 @@ type Config struct {
 }
 
 func init() {
-	config := Config{}
-	configBytes, err := ioutil.ReadFile("/opt/ameske/etc/go_nfl/nfl.yaml")
-	if err != nil {
-		log.Fatalf("Error reading config file: %s", err.Error())
-	}
-	err = yaml.Unmarshal(configBytes, &config)
-	if err != nil {
-		log.Fatalf("Error parsing config file: %s", err.Error())
-	}
-
-	db = database.NflDb()
+	/*
+		config := Config{}
+		configBytes, err := ioutil.ReadFile("/opt/ameske/etc/go_nfl/nfl.yaml")
+		if err != nil {
+			log.Fatalf("Error reading config file: %s", err.Error())
+		}
+		err = yaml.Unmarshal(configBytes, &config)
+		if err != nil {
+			log.Fatalf("Error parsing config file: %s", err.Error())
+		}
+	*/
+	db = database.NflDb("host=localhost port=5432")
 }
 
 func main() {
@@ -97,11 +95,16 @@ func main() {
 					},
 					Action: inputPicks,
 				},
+				{
+					Name:   "teams",
+					Usage:  "add teams to the database",
+					Action: inputTeams,
+				},
 			},
 		},
 		{
-			Name:      "scrape",
-			ShortName: "s",
+			Name:      "import",
+			ShortName: "i",
 			Usage:     "options for scraping info from nfl website",
 			Subcommands: []cli.Command{
 				{
@@ -159,7 +162,7 @@ func main() {
 			},
 		},
 		{
-			Name:      "generate",
+			Name:      "html",
 			ShortName: "ge",
 			Usage:     "generate static html pages for the website",
 			Subcommands: []cli.Command{
@@ -179,6 +182,32 @@ func main() {
 							Usage: "week to generate results",
 						},
 					},
+				},
+			},
+		},
+		{
+			Name:      "testdata",
+			ShortName: "test",
+			Usage:     "generate test data for development or unit tests",
+			Action:    generateTestData,
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "weeks, w",
+					Value: 1,
+					Usage: "number of weeks of data to create",
+				},
+				cli.IntFlag{
+					Name:  "users, u",
+					Value: 1,
+					Usage: "number of test users to create",
+				},
+				cli.BoolFlag{
+					Name:  "fakepicks",
+					Usage: "create fake picks for the test users",
+				},
+				cli.BoolFlag{
+					Name:  "fakescores",
+					Usage: "create fake scores for the games",
 				},
 			},
 		},

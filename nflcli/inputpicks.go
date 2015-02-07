@@ -17,8 +17,6 @@ type PickSelection struct {
 }
 
 func inputPicks(c *cli.Context) {
-	db := database.NflDb()
-
 	user, year, week := c.String("user"), c.Int("year"), c.Int("week")
 	// Make sure that the user put something for all of the flags
 	if user == "" || year == -1 || week == -1 {

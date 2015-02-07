@@ -21,8 +21,6 @@ type GameJson struct {
 }
 
 func schedule(c *cli.Context) {
-	db := database.NflDb()
-
 	games := make([]*GameJson, 0)
 
 	// Open the 2014 schedule, and parse the json into our golang struct

@@ -47,8 +47,6 @@ func results(c *cli.Context) {
 		year, week = database.CurrentWeek(db)
 	}
 
-	db := database.NflDb()
-
 	teams := database.TeamAbbreviationMap(db)
 	users := database.AllUsers(db)
 	games := database.WeeklyGames(db, year, week)

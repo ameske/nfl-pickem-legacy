@@ -13,8 +13,6 @@ type GamesWeeksJoin struct {
 }
 
 func seasonPicks(c *cli.Context) {
-	db := database.NflDb()
-
 	year := c.Int("year")
 	if year == -1 {
 		log.Fatalf("Year is a required argument")

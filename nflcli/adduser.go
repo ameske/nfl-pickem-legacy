@@ -10,8 +10,6 @@ import (
 )
 
 func inputUser(c *cli.Context) {
-	db := database.NflDb()
-
 	first, last, email, password := c.String("first"), c.String("last"), c.String("email"), c.String("password")
 
 	// Check to see if required arguments were given
