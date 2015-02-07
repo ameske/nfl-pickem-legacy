@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"database/sql"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/codegangsta/cli"
@@ -20,15 +20,7 @@ type Teams struct {
 }
 
 func inputTeams(c *cli.Context) {
-	db := initDb()
-
-	// Open the file containing team info and wrap it in scanner
-	teamData, err := os.Open("sql/teams.txt")
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	defer teamData.Close()
-	scanner := bufio.NewScanner(teamData)
+	scanner := bufio.NewScanner(bytes.NewBufferString(teams))
 
 	// Line by line, get the information and load it into the DB
 	for scanner.Scan() {
@@ -40,7 +32,7 @@ func inputTeams(c *cli.Context) {
 			Stadium:  splitLine[2],
 		}
 
-		err = db.Insert(newTeam)
+		err := db.Insert(newTeam)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
@@ -63,3 +55,36 @@ func initDb() *gorp.DbMap {
 
 	return dbmap
 }
+
+var teams = `Buffalo,Bills,Ralph Wilson Stadium
+Miami,Dolphins,Sun Life Stadium
+New England,Patriots,Gilette Stadium
+New York,Jets,MetLife Stadium
+Baltimore,Ravens,M&T Bank Stadium
+Cincinatti,Bengals,Paul Brown Stadium
+Cleveland,Browns,First Energy Stadium
+Pittsburgh,Steelers,Heinz Field
+Houston,Texans,Reliant Stadium
+Indianapolis,Colts,Lucas Oil Stadium
+Jacksonville,Jaguars,EverBank Field
+Tennessee,Titans,LP Field
+Denver,Broncos,Mile High Stadium
+Kansas City,Chiefs,Arrowhead Stadium
+Oakland,Raiders,O.co Coliseum
+San Diego,Chargers,Qualcomm Stadium
+Dallas,Cowboys,AT&T Stadium
+New York,Giants,MetLife Stadium
+Philadelphia,Eagles,Lincoln Financial Field
+Washington,Redskins,FedEx Field
+Chicago,Bears,Soldier Field
+Detroit,Lions,Ford Field
+Green Bay,Packers,Lambeau Field
+Minnesota,Vikings,TCF Bank Stadium
+Atlanta,Falcons,Georiga Dome
+Carolina,Panthers,Bank of America Stadium
+New Orleans,Saints,Mercedes-Benz Superdome
+Tampa Bay,Buccaneers,Raymond James Stadium
+Arizona,Cardinals,University of Phoenix Stadium
+St. Louis,Rams,Edward Jones Dome
+San Francisco,49ers,Candlestick Park
+Seattle,Seahawks,CenturyLink Field`
