@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	"github.com/ameske/go_nfl/database"
+	"github.com/ameske/nfl-pickem/database"
 	"github.com/codegangsta/cli"
 
-	"code.google.com/p/go.crypto/bcrypt"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func inputUser(c *cli.Context) {

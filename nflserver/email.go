@@ -6,7 +6,7 @@ import (
 	"net/smtp"
 	"text/template"
 
-	"github.com/ameske/go_nfl/database"
+	"github.com/ameske/nfl-pickem/database"
 )
 
 var (

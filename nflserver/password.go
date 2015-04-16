@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"code.google.com/p/go.crypto/bcrypt"
+	"golang.org/x/crypto/bcrypt"
 
-	"github.com/ameske/go_nfl/database"
+	"github.com/ameske/nfl-pickem/database"
 )
 
 // m contains information for the passwordChange template
@@ -47,6 +47,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+
 	database.UpdatePassword(db, u, bpass)
 
 	Fetch("changePassword.html").Execute(w, u, m{Success: "Password updated successfully."})

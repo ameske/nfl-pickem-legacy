@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/ameske/go_nfl/database"
+	"github.com/ameske/nfl-pickem/database"
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {

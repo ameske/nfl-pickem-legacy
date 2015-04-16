@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/base64"
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 
-	"github.com/ameske/go_nfl/database"
+	"github.com/ameske/nfl-pickem/database"
 	"github.com/coopernurse/gorp"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -17,6 +19,24 @@ var (
 	db     *gorp.DbMap
 	router = mux.NewRouter()
 )
+
+type Config struct {
+	Server ServerConfig
+	Email  EmailConfig
+}
+
+type ServerConfig struct {
+	AuthKey            string `json:"authKey"`
+	EncryptKey         string `json:"encryptKey"`
+	PostgresConnString string `json:"postgresConnString"`
+}
+
+type EmailConfig struct {
+	SendAsAddress   string `json:"sendAsAddress"`
+	Password        string `json:"password"`
+	SMTPAddress     string `json:"smtpAddress"`
+	SMTPFullAddress string `json:"smtpFullAddress"`
+}
 
 func init() {
 	// App configuration
@@ -39,6 +59,19 @@ func init() {
 func main() {
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
 	log.Fatal(http.ListenAndServe(":61389", router))
+}
+
+func loadConfig(path string) Config {
+	configBytes, err := ioutil.ReadFile(path)
+
+	config := Config{}
+	err = json.Unmarshal(configBytes, &config)
+
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	return config
 }
 
 func configureDb(config Config) {

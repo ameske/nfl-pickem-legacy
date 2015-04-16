@@ -6,7 +6,7 @@ import (
 
 	"github.com/coopernurse/gorp"
 
-	"code.google.com/p/go.crypto/bcrypt"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Users struct {

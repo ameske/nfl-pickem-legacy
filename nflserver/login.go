@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ameske/go_nfl/database"
+	"github.com/ameske/nfl-pickem/database"
 	"github.com/gorilla/context"
 )
 
