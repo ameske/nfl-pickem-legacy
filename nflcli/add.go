@@ -5,10 +5,96 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"text/tabwriter"
 
 	"github.com/ameske/nfl-pickem/database"
-	"github.com/codegangsta/cli"
+	"golang.org/x/crypto/bcrypt"
 )
+
+func Add(args []string) {
+	log.Println("Reached the add subcommand")
+
+	if len(args) == 0 {
+		AddHelp()
+		return
+	}
+
+	switch args[0] {
+	case "user":
+		log.Println("Reached the add-user subcommand")
+		//AddUser(args[1:])
+	case "picks":
+		log.Println("Reached the add-picks subcommand")
+		//AddPicks(args[1:])
+	case "help":
+		AddHelp()
+
+	default:
+		AddHelp()
+	}
+
+}
+
+func AddHelp() {
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, 0, 8, 2, '\t', 0)
+
+	fmt.Fprintln(w, "nfl-add manually adds assets to the database")
+	fmt.Fprintln(w, "\nAvailable commands:")
+	fmt.Fprintln(w, "\tuser\t Add a new user to the database")
+	fmt.Fprintln(w, "\tpicks\t Input a user's picks to the database")
+	fmt.Fprintln(w, "\thelp\t Display this message\n")
+
+	err := w.Flush()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func AddUser(args []string) {
+	var first, last, email, password string
+	f := flag.NewFlagSet("adduser", flag.ExitOnError)
+	f.StringVar(&first, "first", "", "First Name")
+	f.StringVar(&last, "last", "", "Last Name")
+	f.StringVar(&email, "email", "", "Email Address")
+	f.StringVar(&password, "password", "", "Password")
+
+	err := f.Parse(args)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check to see if required arguments were given
+	if first == "" {
+		log.Fatalf("First name is required. Use --first <firstname> to specify.")
+	}
+	if last == "" {
+		log.Fatalf("Last name is required. Use --last <lastname> to specify.")
+	}
+	if email == "" {
+		log.Fatalf("Email is required. Use --email <address> to specify.")
+	}
+	if password == "" {
+		log.Fatalf("Desired password required. Use --password <pass> to specify.")
+	}
+
+	bpass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	newUser := &database.Users{
+		FirstName: first,
+		LastName:  last,
+		Email:     email,
+		Password:  string(bpass),
+	}
+
+	err = db.Insert(newUser)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+}
 
 type PickSelection struct {
 	database.Picks
@@ -16,8 +102,20 @@ type PickSelection struct {
 	HomeId int64
 }
 
-func inputPicks(c *cli.Context) {
-	user, year, week := c.String("user"), c.Int("year"), c.Int("week")
+func AddPicks(args []string) {
+	var user string
+	var year, week int
+
+	f := flag.NewFlagSet("picks", flag.ExitOnError)
+	f.StringVar(&user, "user", "", "Username")
+	f.IntVar(&year, "year", -1, "Year")
+	f.IntVar(&week, "week", -1, "Week")
+
+	err := f.Parse(args)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Make sure that the user put something for all of the flags
 	if user == "" || year == -1 || week == -1 {
 		fmt.Fprintf(os.Stderr, "Please explicitly supply all flags.\nUsage of %s\n", os.Args[0])
@@ -31,7 +129,7 @@ func inputPicks(c *cli.Context) {
 	// Look up the userId for the user specified
 	fmt.Printf("Looking up user ID...")
 	var userId int64
-	err := db.SelectOne(&userId, "SELECT id from users WHERE email = $1", user)
+	err = db.SelectOne(&userId, "SELECT id from users WHERE email = $1", user)
 	if err != nil {
 		log.Fatalf("UserId: %s", err.Error())
 	}

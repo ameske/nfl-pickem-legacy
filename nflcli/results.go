@@ -1,13 +1,13 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"text/template"
 
 	"github.com/ameske/nfl-pickem/database"
-	"github.com/codegangsta/cli"
 )
 
 type ResultsTemplateData struct {
@@ -41,8 +41,18 @@ const (
 /*
 * Creates an HTML file based on a template that displays the results for a given week.
  */
-func results(c *cli.Context) {
-	year, week := c.Int("year"), c.Int("week")
+func GenerateResultsHTML(args []string) {
+	var year, week int
+
+	f := flag.NewFlagSet("grade", flag.ExitOnError)
+	f.IntVar(&year, "year", -1, "Year")
+	f.IntVar(&week, "week", -1, "Week")
+
+	err := f.Parse(args)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if week == -1 || year == -1 {
 		year, week = database.CurrentWeek(db)
 	}

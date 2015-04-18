@@ -1,15 +1,25 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"math"
 
 	"github.com/ameske/nfl-pickem/database"
-	"github.com/codegangsta/cli"
 )
 
-func grade(c *cli.Context) {
-	year, week := c.Int("year"), c.Int("week")
+func Grade(args []string) {
+	var year, week int
+
+	f := flag.NewFlagSet("grade", flag.ExitOnError)
+	f.IntVar(&year, "year", -1, "Year")
+	f.IntVar(&week, "week", -1, "Week")
+
+	err := f.Parse(args)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if year == -1 || week == -1 {
 		year, week = database.CurrentWeek(db)
 	}
@@ -18,7 +28,7 @@ func grade(c *cli.Context) {
 
 	// Gather this week's games
 	var gamesSlice []database.Games
-	_, err := db.Select(&gamesSlice, "SELECT * FROM games WHERE week_id = $1", weekId)
+	_, err = db.Select(&gamesSlice, "SELECT * FROM games WHERE week_id = $1", weekId)
 	if err != nil {
 		log.Fatalf("Games: %s", err.Error())
 	}
