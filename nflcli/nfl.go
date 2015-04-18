@@ -11,26 +11,10 @@ import (
 )
 
 var (
-	db     *gorp.DbMap
-	config Config
+	db *gorp.DbMap
 )
 
-type Config struct {
-	StaticDir string `yaml:"STATIC_DIR"`
-}
-
 func init() {
-	/*
-		config := Config{}
-		configBytes, err := ioutil.ReadFile("/opt/ameske/etc/go_nfl/nfl.yaml")
-		if err != nil {
-			log.Fatalf("Error reading config file: %s", err.Error())
-		}
-		err = yaml.Unmarshal(configBytes, &config)
-		if err != nil {
-			log.Fatalf("Error parsing config file: %s", err.Error())
-		}
-	*/
 	//	db = database.NflDb("host=localhost port=5432")
 }
 
@@ -50,11 +34,9 @@ func main() {
 	case "import":
 		Import(args[1:])
 	case "grade":
-		log.Println("Reached the grade subcommand")
-		//Grade(args[1:])
+		Grade(args[1:])
 	case "generate":
-		log.Println("Reached the generate subcommand")
-		//GenerateResultsHTML(args[1:])
+		Generate(args[1:])
 	case "help":
 		Help()
 	default:

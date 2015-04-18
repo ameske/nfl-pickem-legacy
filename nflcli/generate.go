@@ -3,12 +3,48 @@ package main
 import (
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"os"
-	"text/template"
+	"text/tabwriter"
 
 	"github.com/ameske/nfl-pickem/database"
 )
+
+func Generate(args []string) {
+	if len(args) == 0 {
+		GenerateHelp()
+		return
+	}
+
+	switch args[0] {
+	case "html":
+		GenerateResultsHTML(args[1:])
+	case "picks":
+		GenerateSeasonPicks(args[1:])
+	case "help":
+		GenerateHelp()
+	default:
+		GenerateHelp()
+	}
+
+}
+
+func GenerateHelp() {
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, 0, 8, 2, '\t', 0)
+
+	fmt.Fprintln(w, "nfl-generate creates static assets or inits database tables")
+	fmt.Fprintln(w, "\nAvailable commands:")
+	fmt.Fprintln(w, "\thtml\t Generate results HTML for a given week")
+	fmt.Fprintln(w, "\tpicks\t Generate empty pick rows for a sesason")
+	fmt.Fprintf(w, "\n")
+
+	err := w.Flush()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 type ResultsTemplateData struct {
 	Users   []database.Users
@@ -144,4 +180,60 @@ func reorderPicks(gamesOrder []database.Games, picks []*database.Picks) {
 
 		}
 	}
+}
+
+type GamesWeeksJoin struct {
+	database.Games
+	database.Weeks
+}
+
+// SeasonPicks generates empty pick rows for a year's games. The games must be
+// loaded into the database before this can be called.
+func GenerateSeasonPicks(args []string) {
+	var year int
+
+	f := flag.NewFlagSet("generateSeasonPicks", flag.ExitOnError)
+	f.IntVar(&year, "year", -1, "Year")
+
+	err := f.Parse(args)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if year == -1 {
+		log.Fatalf("Year is a required argument")
+	}
+
+	var users []database.Users
+	_, err = db.Select(&users, "SELECT * FROM users")
+	if err != nil {
+		log.Fatalf("Users error: %s", err.Error())
+	}
+
+	var yearId int64
+	err = db.SelectOne(&yearId, "SELECT id FROM years WHERE year = $1", year)
+	if err != nil {
+		log.Fatalf("Years error: %s", err.Error())
+	}
+
+	var games []int64
+	_, err = db.Select(&games, "SELECT games.id FROM weeks INNER JOIN games ON games.week_id = weeks.id WHERE weeks.year_id = $1", yearId)
+	if err != nil {
+		log.Fatalf("Games error: %s", err.Error())
+	}
+
+	for _, g := range games {
+		for _, u := range users {
+			tmp := &database.Picks{
+				UserId: u.Id,
+				GameId: g,
+			}
+			err = db.Insert(tmp)
+			if err != nil {
+				log.Fatalf("Insert error: %s", err.Error())
+			}
+
+		}
+	}
+
 }

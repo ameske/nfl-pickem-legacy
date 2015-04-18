@@ -16,13 +16,11 @@ import (
 	"time"
 
 	"github.com/ameske/nfl-pickem/database"
-	"github.com/codegangsta/cli"
 	_ "github.com/lib/pq"
 )
 
 // Import is the dispatch hub for the "import" subcommand
 func Import(args []string) {
-	log.Println("Reached the import subcommand")
 
 	if len(args) == 0 {
 		ImportHelp()
@@ -31,14 +29,11 @@ func Import(args []string) {
 
 	switch args[0] {
 	case "schedule":
-		log.Println("Reached the import-schedule subcommand")
-		//ImportSchedule(args[1:])
+		ImportSchedule(args[1:])
 	case "scores":
-		log.Println("Reached the import-scores subcommand")
-		//ImportScores(Args[1:])
+		ImportScores(args[1:])
 	case "teams":
-		log.Println("Reached the import-teams subcommand")
-		//ImportTeams(Args[1:])
+		ImportTeams(args[1:])
 	case "help":
 		ImportHelp()
 	default:
@@ -225,7 +220,7 @@ type Teams struct {
 	Stadium  string `db:"stadium"`
 }
 
-func ImportTeams(c *cli.Context) {
+func ImportTeams(args []string) {
 	scanner := bufio.NewScanner(bytes.NewBufferString(teams))
 
 	// Line by line, get the information and load it into the DB
