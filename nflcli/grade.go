@@ -8,6 +8,9 @@ import (
 	"github.com/ameske/nfl-pickem/database"
 )
 
+// Grade calculates the scores for each user in the database for the given week.
+// It assumes that the scores for the graded week have already been imported, else
+// results are undefined.
 func Grade(args []string) {
 	var year, week int
 

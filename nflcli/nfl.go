@@ -72,7 +72,8 @@ func Help() {
 	fmt.Fprintln(w, "\timport\t Import information into the database")
 	fmt.Fprintln(w, "\tgrade\t Grade a given week's picks")
 	fmt.Fprintln(w, "\tgenerate\t Generate HTML based on information in the database")
-	fmt.Fprintln(w, "\thelp\t Display this message\n")
+	fmt.Fprintln(w, "\thelp\t Display this message")
+	fmt.Fprintf(w, "\n")
 
 	err := w.Flush()
 	if err != nil {

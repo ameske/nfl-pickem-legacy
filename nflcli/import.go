@@ -20,6 +20,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Import is the dispatch hub for the "import" subcommand
 func Import(args []string) {
 	log.Println("Reached the import subcommand")
 
@@ -45,6 +46,7 @@ func Import(args []string) {
 	}
 }
 
+// ImportHelp displays the help message for the "import" subcommand
 func ImportHelp() {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 2, '\t', 0)
@@ -54,7 +56,8 @@ func ImportHelp() {
 	fmt.Fprintln(w, "\tschedule\t Scrape nfl.com for a year's schedule")
 	fmt.Fprintln(w, "\tscores\t Scrape nfl.com for a week's scores")
 	fmt.Fprintln(w, "\tteams\t Import teams into the database for setup")
-	fmt.Fprintln(w, "\thelp\t Display this message\n")
+	fmt.Fprintln(w, "\thelp\t Display this message")
+	fmt.Fprintf(w, "\n")
 
 	err := w.Flush()
 	if err != nil {
@@ -70,6 +73,8 @@ type ResultsJson struct {
 	AwayScore int    `json:"away_score"`
 }
 
+// ImportScores scrapes the NFL's website using a helper script and inserts those
+// scores into the database.
 func ImportScores(args []string) {
 	var year, week int
 
@@ -159,6 +164,8 @@ type GameJson struct {
 	Year       int       `json:"year"`
 }
 
+// ImportSchedule scrapes the nfl.com website for the request year's schedule using a
+// helper script and inserts the games into the database.
 func ImportSchedule(args []string) {
 	games := make([]*GameJson, 0)
 

@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Add is the subcommand hub for the "add" actions
 func Add(args []string) {
 	log.Println("Reached the add subcommand")
 
@@ -35,6 +36,7 @@ func Add(args []string) {
 
 }
 
+// AddHelp displays the help message for the "add" subcommand
 func AddHelp() {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 2, '\t', 0)
@@ -43,7 +45,8 @@ func AddHelp() {
 	fmt.Fprintln(w, "\nAvailable commands:")
 	fmt.Fprintln(w, "\tuser\t Add a new user to the database")
 	fmt.Fprintln(w, "\tpicks\t Input a user's picks to the database")
-	fmt.Fprintln(w, "\thelp\t Display this message\n")
+	fmt.Fprintln(w, "\thelp\t Display this message")
+	fmt.Fprintf(w, "\n")
 
 	err := w.Flush()
 	if err != nil {
@@ -51,8 +54,11 @@ func AddHelp() {
 	}
 }
 
+// AddUser adds a new user to the database. The password supplied is encrypted
+// using bcrypt before being added.
 func AddUser(args []string) {
 	var first, last, email, password string
+
 	f := flag.NewFlagSet("adduser", flag.ExitOnError)
 	f.StringVar(&first, "first", "", "First Name")
 	f.StringVar(&last, "last", "", "Last Name")
@@ -96,12 +102,8 @@ func AddUser(args []string) {
 	}
 }
 
-type PickSelection struct {
-	database.Picks
-	AwayId int64
-	HomeId int64
-}
-
+// AddPicks walks the admin through manual addition of picks for the request user
+// and week.
 func AddPicks(args []string) {
 	var user string
 	var year, week int
@@ -116,30 +118,33 @@ func AddPicks(args []string) {
 		log.Fatal(err)
 	}
 
-	// Make sure that the user put something for all of the flags
+	// Check to see if required arguments were given
 	if user == "" || year == -1 || week == -1 {
 		fmt.Fprintf(os.Stderr, "Please explicitly supply all flags.\nUsage of %s\n", os.Args[0])
 		flag.PrintDefaults()
 		return
 	}
 
-	// Go ahead and grab a mapping of team ID's to names for the CLI
 	teams := database.TeamMap(db)
 
-	// Look up the userId for the user specified
-	fmt.Printf("Looking up user ID...")
-	var userId int64
-	err = db.SelectOne(&userId, "SELECT id from users WHERE email = $1", user)
+	var userID int64
+	err = db.SelectOne(&userID, "SELECT id from users WHERE email = $1", user)
 	if err != nil {
 		log.Fatalf("UserId: %s", err.Error())
 	}
-	fmt.Printf("%d\n", userId)
+	fmt.Printf("%d\n", userID)
 
-	// Gather the set of picks for the request year/week
-	fmt.Printf("Gathering picks to be made...")
+	type PickSelection struct {
+		database.Picks
+		AwayId int64
+		HomeId int64
+	}
+
 	var picks []PickSelection
-	weekId := database.WeekId(db, year, week)
-	_, err = db.Select(&picks, "SELECT picks.*, games.away_id AS AwayId, games.home_id AS HomeId FROM picks INNER JOIN games ON picks.game_id = games.id WHERE picks.user_id = $1 AND games.week_id = $2", userId, weekId)
+	weekID := database.WeekId(db, year, week)
+	_, err = db.Select(&picks, `SELECT picks.*, games.away_id AS AwayId, games.home_id AS HomeId 
+				    FROM picks INNER JOIN games ON picks.game_id = games.id
+				    WHERE picks.user_id = $1 AND games.week_id = $2"`, userID, weekID)
 	if err != nil {
 		log.Fatalf("PickSelection: %s", err.Error())
 	}
@@ -157,7 +162,7 @@ func AddPicks(args []string) {
 			if selection != 1 && selection != 2 {
 				fmt.Printf("Selection must be (1) or (2).\n")
 				if points != 1 && points != 3 && points != 5 && points != 7 {
-					fmt.Printf("Points must be the value 1, 3, 5, or 7.\n")
+					fmt.Printf("Point values must be one of 1, 3, 5, or 7.\n")
 				}
 				fmt.Printf("Please re-enter the game.\n\n")
 				continue
@@ -173,8 +178,12 @@ func AddPicks(args []string) {
 		}
 	}
 
+	// Have the user verify the picks that were just made. We have already updated the database, but
+	// since this is designed to be an admin only app we can get away with it.
 	var enteredPicks []PickSelection
-	_, err = db.Select(&enteredPicks, "SELECT picks.*, games.away_id AS AwayId, games.home_id AS HomeId FROM picks INNER JOIN games ON picks.game_id = games.id WHERE picks.user_id = $1 AND games.week_id = $2", userId, weekId)
+	_, err = db.Select(&enteredPicks, `SELECT picks.*, games.away_id AS AwayId, games.home_id AS HomeId
+					   FROM picks INNER JOIN games ON picks.game_id = games.id
+					   WHERE picks.user_id = $1 AND games.week_id = $2"`, userID, weekID)
 	if err != nil {
 		log.Fatalf("PickSelection Verify: %s", err.Error())
 	}

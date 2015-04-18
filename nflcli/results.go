@@ -38,9 +38,7 @@ const (
 	Pending
 )
 
-/*
-* Creates an HTML file based on a template that displays the results for a given week.
- */
+// GenerateResultsHTML creates an HTML file based on a template that displays the results for a given week.
 func GenerateResultsHTML(args []string) {
 	var year, week int
 
