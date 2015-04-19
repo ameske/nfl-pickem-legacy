@@ -3,8 +3,6 @@ package database
 import (
 	"fmt"
 	"log"
-
-	"github.com/coopernurse/gorp"
 )
 
 type Teams struct {
@@ -15,7 +13,7 @@ type Teams struct {
 	Abbreviation string `db:"abbreviation"`
 }
 
-func TeamAbbreviationMap(db *gorp.DbMap) map[int64]string {
+func TeamAbbreviationMap() map[int64]string {
 	var teams []Teams
 
 	teamMap := make(map[int64]string)
@@ -33,7 +31,7 @@ func TeamAbbreviationMap(db *gorp.DbMap) map[int64]string {
 
 }
 
-func TeamMap(db *gorp.DbMap) map[int64]string {
+func TeamMap() map[int64]string {
 	var teams []Teams
 
 	teamMap := make(map[int64]string)

@@ -1,10 +1,6 @@
 package database
 
-import (
-	"log"
-
-	"github.com/coopernurse/gorp"
-)
+import "log"
 
 type StandingsPage struct {
 	User   string `db:"first_name"`
@@ -14,7 +10,7 @@ type StandingsPage struct {
 
 // Standings returns the state of the pick-em pool as of the given week in the
 // requested year
-func Standings(db *gorp.DbMap, year, week int) []*StandingsPage {
+func Standings(year, week int) []*StandingsPage {
 	var sql string
 
 	// If it's the first week, we of course cannot deduct the lowest week yet

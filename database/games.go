@@ -3,8 +3,6 @@ package database
 import (
 	"log"
 	"time"
-
-	"github.com/coopernurse/gorp"
 )
 
 type Games struct {
@@ -17,7 +15,7 @@ type Games struct {
 	AwayScore int       `db:"away_score"`
 }
 
-func WeeklyGames(db *gorp.DbMap, year, week int) []Games {
+func WeeklyGames(year, week int) []Games {
 	var games []Games
 	_, err := db.Select(&games, "SELECT games.* FROM games JOIN weeks ON weeks.id = games.week_id JOIN years ON years.id = weeks.year_id WHERE year = $1 AND week = $2 ORDER BY date ASC, games.id ASC", year, week)
 	if err != nil {

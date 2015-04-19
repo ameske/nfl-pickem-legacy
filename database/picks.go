@@ -3,8 +3,6 @@ package database
 import (
 	"log"
 	"time"
-
-	"github.com/coopernurse/gorp"
 )
 
 // Picks is a struct mapping to the corresponding postgres table
@@ -33,8 +31,8 @@ type FormPick struct {
 }
 
 // WeeklyPicks creates a []Picks representing a user's picks for the given week
-func WeeklyPicks(db *gorp.DbMap, username string) (picks []*Picks) {
-	year, week := CurrentWeek(db)
+func WeeklyPicks(username string) (picks []*Picks) {
+	year, week := CurrentWeek()
 
 	sql := `SELECT picks.*
 		FROM picks
@@ -53,7 +51,7 @@ func WeeklyPicks(db *gorp.DbMap, username string) (picks []*Picks) {
 	return
 }
 
-func WeeklyPicksYearWeek(db *gorp.DbMap, username string, year, week int) (picks []*Picks) {
+func WeeklyPicksYearWeek(username string, year, week int) (picks []*Picks) {
 	sql := `SELECT picks.*
 		FROM picks
 		JOIN games ON games.id = picks.game_id
@@ -71,8 +69,8 @@ func WeeklyPicksYearWeek(db *gorp.DbMap, username string, year, week int) (picks
 	return
 }
 
-func weeklySelectedPicks(db *gorp.DbMap, username string) (picks []*Picks) {
-	year, week := CurrentWeek(db)
+func weeklySelectedPicks(username string) (picks []*Picks) {
+	year, week := CurrentWeek()
 
 	sql := `SELECT picks.*
 		FROM picks
@@ -92,12 +90,12 @@ func weeklySelectedPicks(db *gorp.DbMap, username string) (picks []*Picks) {
 }
 
 // FormPicks gathers the neccessary information needed render a user's pick-em form
-func FormPicks(db *gorp.DbMap, username string, selectedOnly bool) []FormPick {
+func FormPicks(username string, selectedOnly bool) []FormPick {
 	var picks []*Picks
 	if selectedOnly {
-		picks = weeklySelectedPicks(db, username)
+		picks = weeklySelectedPicks(username)
 	} else {
-		picks = WeeklyPicks(db, username)
+		picks = WeeklyPicks(username)
 	}
 
 	formGames := make([]FormPick, 0)
@@ -140,4 +138,19 @@ func FormPicks(db *gorp.DbMap, username string, selectedOnly bool) []FormPick {
 	}
 
 	return formGames
+}
+
+func MakePick(id int, selection int, points int) error {
+	var pick Picks
+	err := db.SelectOne(&pick, "SELECT * FROM picks WHERE id = $1", id)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	pick.Selection = int(selection)
+	pick.Points = int(points)
+
+	_, err = db.Update(&pick)
+
+	return err
 }

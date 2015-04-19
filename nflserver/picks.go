@@ -16,7 +16,7 @@ import (
 func PicksForm(w http.ResponseWriter, r *http.Request) {
 	user := currentUser(r)
 
-	picks := database.FormPicks(db, user, false)
+	picks := database.FormPicks(user, false)
 
 	e, s := "", ""
 	if context.Get(r, "error") != nil {
@@ -76,23 +76,14 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 		}
 		points, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", p)), 10, 32)
 
-		var pick database.Picks
-		err := db.SelectOne(&pick, "SELECT * FROM picks WHERE id = $1", id)
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-
-		pick.Selection = int(selection)
-		pick.Points = int(points)
-
-		_, err = db.Update(&pick)
+		err := database.MakePick(int(id), int(selection), int(points))
 		if err != nil {
 			log.Fatalf("ProcessPicks: %s", err.Error())
 		}
 	}
 
-	selectedPicks := database.FormPicks(db, user, true)
-	_, week := database.CurrentWeek(db)
+	selectedPicks := database.FormPicks(user, true)
+	_, week := database.CurrentWeek()
 	SendPicksEmail(user,
 		fmt.Sprintf("Current Week %d Picks", week),
 		week,
@@ -107,7 +98,7 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 // point set. It allows users to "under-point" their picks to allow them to submit
 // games at their leisure.
 func validate(user string, updatedPicks []string, r *http.Request) (threes, fives, sevens bool) {
-	pvs := database.WeekPvs(db)
+	pvs := database.WeekPvs()
 
 	one := 0
 	three := 0
@@ -117,7 +108,7 @@ func validate(user string, updatedPicks []string, r *http.Request) (threes, five
 	currentPicks := make([]database.FormPick, 0, 16)
 
 	// Add all of the locked old picks to the current "view" of the user's picks
-	oldPicks := database.FormPicks(db, user, true)
+	oldPicks := database.FormPicks(user, true)
 	for _, op := range oldPicks {
 		locked := true
 		for _, up := range updatedPicks {

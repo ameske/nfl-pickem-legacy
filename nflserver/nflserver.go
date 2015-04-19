@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/ameske/nfl-pickem/database"
-	"github.com/coopernurse/gorp"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
@@ -16,7 +15,6 @@ import (
 // For now, we will let all of these things be global since it's easier
 var (
 	store  *sessions.CookieStore
-	db     *gorp.DbMap
 	router = mux.NewRouter()
 )
 
@@ -41,8 +39,10 @@ type EmailConfig struct {
 func init() {
 	// App configuration
 	config := loadConfig("/opt/ameske/gonfl/conf.json")
+
+	database.SetDefaultDb(config.Server.PostgresConnString)
+
 	configureSessionStore(config)
-	configureDb(config)
 	configureEmail(config)
 
 	// HTTP Server configuration
@@ -72,10 +72,6 @@ func loadConfig(path string) Config {
 	}
 
 	return config
-}
-
-func configureDb(config Config) {
-	db = database.NflDb(config.Server.PostgresConnString)
 }
 
 func configureSessionStore(config Config) {

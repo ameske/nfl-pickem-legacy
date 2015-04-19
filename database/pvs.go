@@ -1,10 +1,6 @@
 package database
 
-import (
-	"log"
-
-	"github.com/coopernurse/gorp"
-)
+import "log"
 
 type Pvs struct {
 	Id    int64  `db:"id"`
@@ -15,7 +11,7 @@ type Pvs struct {
 	One   int    `db:"one"`
 }
 
-func WeekPvs(db *gorp.DbMap) Pvs {
+func WeekPvs() Pvs {
 	var pvs Pvs
 	sql := `SELECT pvs.*
 		FROM weeks
@@ -23,7 +19,7 @@ func WeekPvs(db *gorp.DbMap) Pvs {
 		JOIN pvs ON pvs.id = weeks.pvs_id
 		WHERE years.year = $1 AND weeks.week = $2`
 
-	year, week := CurrentWeek(db)
+	year, week := CurrentWeek()
 	err := db.SelectOne(&pvs, sql, year, week)
 	if err != nil {
 		log.Fatalf("WeekPvs: %s", err.Error())

@@ -31,7 +31,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	pNC := r.FormValue("confirmNewPassword")
 
 	// Check that this user is actually who they claim they are
-	if !database.CheckCredentials(db, u, p) {
+	if !database.CheckCredentials(u, p) {
 		Fetch("changePassword.html").Execute(w, u, m{Error: "Invalid username or password"})
 		return
 	}
@@ -48,7 +48,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf(err.Error())
 	}
 
-	database.UpdatePassword(db, u, bpass)
+	database.UpdatePassword(u, bpass)
 
 	Fetch("changePassword.html").Execute(w, u, m{Success: "Password updated successfully."})
 }

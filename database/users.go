@@ -4,8 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/coopernurse/gorp"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -19,7 +17,17 @@ type Users struct {
 	Password  string    `db:"password"`
 }
 
-func AllUsers(db *gorp.DbMap) []Users {
+func AddUser(u Users) error {
+	bpass, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	u.Password = string(bpass)
+
+	return db.Insert(&u)
+}
+
+func AllUsers() []Users {
 	var users []Users
 	_, err := db.Select(&users, "SELECT * from users ORDER BY first_name ASC")
 	if err != nil {
@@ -29,7 +37,7 @@ func AllUsers(db *gorp.DbMap) []Users {
 	return users
 }
 
-func UserId(db *gorp.DbMap, username string) int64 {
+func UserId(username string) int64 {
 	var userId int64
 	err := db.SelectOne(&userId, "SELECT id FROM users WHERE email = $1", username)
 	if err != nil {
@@ -39,7 +47,7 @@ func UserId(db *gorp.DbMap, username string) int64 {
 	return userId
 }
 
-func CheckCredentials(db *gorp.DbMap, user string, password string) bool {
+func CheckCredentials(user string, password string) bool {
 	var u Users
 
 	_ = db.SelectOne(&u, "SELECT * FROM users WHERE email = $1", user)
@@ -48,7 +56,7 @@ func CheckCredentials(db *gorp.DbMap, user string, password string) bool {
 	return err == nil
 }
 
-func UpdatePassword(db *gorp.DbMap, user string, newPassword []byte) {
+func UpdatePassword(user string, newPassword []byte) {
 	var u Users
 	err := db.SelectOne(&u, "SELECT * FROM users WHERE email = $1", user)
 	if err != nil {

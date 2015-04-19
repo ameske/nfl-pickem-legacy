@@ -32,7 +32,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// Attempt login, taking the user back to the login page with an error message if failed
 	u := r.FormValue("username")
 	p := r.FormValue("password")
-	if !database.CheckCredentials(db, u, p) {
+	if !database.CheckCredentials(u, p) {
 		if next == "" {
 			Fetch("login.html").Execute(w, "", []string{"Invalid username or password.", "/login"})
 		} else {
