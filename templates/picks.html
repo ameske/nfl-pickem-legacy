@@ -23,7 +23,7 @@
             {{if .Disabled}}
             {{if eq .Selection 1}} {{.Away}}</td> {{else}} {{.Home}}</td> {{end}}
             {{else}}
-            <select class="form-control" name="{{.Id}}-Selection">
+            <select class="form-control" name="{{.Id}}-Selection" id="{{.Id}}-Selection">
               {{if eq .Selection 1}}
               <option value="1" selected="selected">{{.Away}}</option>
               <option value="2">{{.Home}}</option>
@@ -70,6 +70,76 @@
       {{end}}
     </table>
     <button type="submit" class="btn btn-default">Submit Picks</button>
+    <button class="btn btn-default" id="validatePicks">Validate</button>
   </form>
 </div> <!-- /container -->
+
+<!-- yeah we'll just shove this script in the middle because reasons -->
+<script>
+  var maxThrees = {{.Threes}};
+  var maxFives = {{.Fives}};
+  var maxSevens = {{.Sevens}};
+
+  function validate() {
+    var threes = 0;
+    var fives = 0;
+    var sevens = 0;
+
+    var ids = document.GetElementsByName("ids");
+    for (var id in ids) {
+        var e = document.GetElementByID(id + "-Selection");
+        var selected = Number(e.value);
+        switch (selected) {
+          case 3:
+            threes++;
+            break;
+          case 5:
+            fives++;
+            break;
+          case 7:
+            sevens++;
+            break;
+        }
+    }
+
+    if (threes > maxThrees || fives > maxFives || sevens > maxSevens) {
+      var msg = "Your picks are invalid:\n";
+
+      if (threes > maxThrees) {
+        msg += "\t Too many three point games. (max " + maxThrees + ")\n";
+      }
+
+      if (fives > maxFives) {
+        msg += "\t Too many five point games. (max " + maxFives + ")\n";
+      }
+
+      if (sevens > maxSevens) {
+        msg += "\t Too many seven point games. (max " + maxSevens + ")";
+      }
+
+      alert(msg);
+    }
+
+    if (threes < maxThrees || fives < maxFives || sevens < maxSevens) {
+      var msg = "Warning, you're leaving points on the table:\n";
+
+      if (threes < maxThrees) {
+        msg += "\t" + (maxThrees - threes) + " three point games remaining\n";
+      }
+
+      if (fives < maxFives) {
+        msg += "\t" + (maxFives - fives) + " five point games remaining\n";
+      }
+
+      if (sevens < maxSevens) {
+        msg += "\t" + (maxSevens - sevens) + " seven point games remaining";
+      }
+
+      alert(msg);
+    }
+  }
+
+  document.GetElementByID("validatePicks").onclick = validate;
+
+</script>
 {{end}}
