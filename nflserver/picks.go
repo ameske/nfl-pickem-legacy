@@ -17,6 +17,7 @@ func PicksForm(w http.ResponseWriter, r *http.Request) {
 	user := currentUser(r)
 
 	picks := database.FormPicks(user, false)
+	pvs := database.WeekPvs()
 
 	e, s := "", ""
 	if context.Get(r, "error") != nil {
@@ -31,11 +32,17 @@ func PicksForm(w http.ResponseWriter, r *http.Request) {
 		Success string
 		URL     string
 		Picks   []database.FormPick
+		Threes  int
+		Fives   int
+		Sevens  int
 	}{
 		e,
 		s,
 		r.URL.String(),
 		picks,
+		pvs.Three,
+		pvs.Five,
+		pvs.Seven,
 	}
 
 	Fetch("picks.html").Execute(w, user, data)
