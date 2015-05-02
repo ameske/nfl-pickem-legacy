@@ -2,6 +2,7 @@ package database
 
 import (
 	"log"
+	"math/rand"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func GamesBySeason(year int) []Games {
 				 FROM games 
 				 JOIN weeks ON weeks.id = games.week_id
 				 JOIN years ON years.id = weeks.year_id
-				 WHERE years = $0`, year)
+				 WHERE years.year = $1`, year)
 	if err != nil {
 		log.Fatalf("GamesBySeason: %s", err.Error())
 	}
@@ -123,4 +124,37 @@ func AddGame(week int, year int, homeTeam string, awayTeam string, date time.Tim
 	}
 
 	return db.Insert(&temp)
+}
+
+func CreateRandomGames(week int, year int) error {
+	weekID, err := weekID(week, year)
+	if err != nil {
+		return err
+	}
+
+	options := rand.Perm(32)
+
+	for i := 0; i < 32; i += 2 {
+		g := Games{
+			WeekId:    weekID,
+			HomeId:    int64(options[i]) + 1,
+			AwayId:    int64(options[i+1]) + 1,
+			Date:      nextSunday(),
+			HomeScore: -1,
+			AwayScore: -1,
+		}
+
+		err := db.Insert(&g)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func nextSunday() time.Time {
+	t := time.Now()
+
+	return t.AddDate(0, 0, 7-int(t.Weekday()))
 }

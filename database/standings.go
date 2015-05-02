@@ -47,6 +47,14 @@ func Standings(year, week int) []*StandingsPage {
 		log.Fatalf("standings: %s", err.Error())
 	}
 
+	if len(standings) == 0 {
+		tmpStandings := &StandingsPage{
+			User:   "test",
+			Points: 0,
+		}
+		standings = []*StandingsPage{tmpStandings}
+	}
+
 	max := standings[0].Points
 
 	for _, s := range standings {

@@ -11,6 +11,18 @@ type Pvs struct {
 	One   int    `db:"one"`
 }
 
+func NewPvs(one, three, five, seven int, typeID string) error {
+	pvs := Pvs{
+		One:   one,
+		Three: three,
+		Five:  five,
+		Seven: seven,
+		Type:  typeID,
+	}
+
+	return db.Insert(&pvs)
+}
+
 func WeekPvs() Pvs {
 	var pvs Pvs
 	sql := `SELECT pvs.*
@@ -26,4 +38,8 @@ func WeekPvs() Pvs {
 	}
 
 	return pvs
+}
+
+func pvsID(typeID string) (int64, error) {
+	return db.SelectInt("SELECT id FROM pvs WHERE type = $1", typeID)
 }

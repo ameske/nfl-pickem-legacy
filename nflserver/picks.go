@@ -68,8 +68,6 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 
 	// Update the picks in the database based on the user's selection, ignoring unselected picks
 	for _, p := range pickedGames {
-		id, _ := strconv.ParseInt(p, 10, 64)
-
 		selection, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Selection", p)), 10, 32)
 		if selection == 0 {
 			continue

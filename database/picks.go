@@ -182,7 +182,11 @@ func CLIPickSelections(user string, year, week int) []PickSelection {
 	fmt.Printf("%d\n", userID)
 
 	var picks []PickSelection
-	weekID := WeekId(year, week)
+	weekID, err := weekID(year, week)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	_, err = db.Select(&picks, `SELECT picks.*, games.away_id AS AwayId, games.home_id AS HomeId 
 				    FROM picks INNER JOIN games ON picks.game_id = games.id
 				    WHERE picks.user_id = $1 AND games.week_id = $2"`, userID, weekID)

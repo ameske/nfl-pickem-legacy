@@ -10,7 +10,12 @@ import (
 	"github.com/ameske/nfl-pickem/database"
 )
 
+const (
+	DefaultDatabase = "host=localhost port=5432"
+)
+
 func main() {
+	dbConnString := flag.String("database", "", "Database connection string")
 	flag.Parse()
 	args := flag.Args()
 
@@ -19,8 +24,10 @@ func main() {
 		return
 	}
 
-	// TODO - Hook this into the pickem config
-	err := database.SetDefaultDb("host=localhost port=5432")
+	if *dbConnString == "" {
+		*dbConnString = DefaultDatabase
+	}
+	err := database.SetDefaultDb(*dbConnString)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,6 +42,8 @@ func main() {
 		Grade(args[1:])
 	case "generate":
 		Generate(args[1:])
+	case "testdata":
+		TestData(args[1:])
 	case "help":
 		Help()
 	default:
@@ -52,6 +61,7 @@ func Help() {
 	fmt.Fprintln(w, "\timport\t Import information into the database")
 	fmt.Fprintln(w, "\tgrade\t Grade a given week's picks")
 	fmt.Fprintln(w, "\tgenerate\t Generate HTML based on information in the database")
+	fmt.Fprintln(w, "\ttestdata\t Create or modify test data")
 	fmt.Fprintln(w, "\thelp\t Display this message")
 	fmt.Fprintf(w, "\n")
 

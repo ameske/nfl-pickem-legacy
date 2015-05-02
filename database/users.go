@@ -17,6 +17,24 @@ type Users struct {
 	Password  string    `db:"password"`
 }
 
+func NewUser(first, last, email, password string) error {
+	u := Users{
+		FirstName: first,
+		LastName:  last,
+		Email:     email,
+		Admin:     false,
+		LastLogin: time.Now(),
+	}
+
+	bpass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	u.Password = string(bpass)
+
+	return db.Insert(&u)
+}
+
 func AddUser(u Users) error {
 	bpass, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {

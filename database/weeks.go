@@ -13,14 +13,36 @@ type Weeks struct {
 	WeekStart int64 `db:"week_start"`
 }
 
-func WeekId(year, week int) int64 {
+func NewWeek(week int, weekStart int64, year int, typeID string) error {
+	yearID, err := yearID(year)
+	if err != nil {
+		return err
+	}
+
+	pvsID, err := pvsID(typeID)
+	if err != nil {
+		return err
+	}
+
+	w := Weeks{
+		YearId:    yearID,
+		Week:      week,
+		PvsId:     pvsID,
+		WeekStart: weekStart,
+	}
+
+	return db.Insert(&w)
+}
+
+func weekID(week, year int) (int64, error) {
 	var weekId int64
 	err := db.SelectOne(&weekId, "SELECT weeks.id FROM weeks JOIN years ON weeks.year_id = years.id WHERE years.year = $1 AND weeks.week = $2", year, week)
 	if err != nil {
-		log.Fatalf("WeekId: %s", err.Error())
+		log.Println("Couldn't get weekID")
+		return -1, err
 	}
 
-	return weekId
+	return weekId, nil
 }
 
 func CurrentWeek() (year, week int) {
