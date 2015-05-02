@@ -47,3 +47,13 @@ func TeamMap() map[int64]string {
 
 	return teamMap
 }
+
+func AddTeam(city, nickname, stadium string) error {
+	newTeam := &Teams{
+		City:     city,
+		Nickname: nickname,
+		Stadium:  stadium,
+	}
+
+	return db.Insert(newTeam)
+}

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"log"
 	"time"
 )
@@ -140,9 +141,11 @@ func FormPicks(username string, selectedOnly bool) []FormPick {
 	return formGames
 }
 
-func MakePick(id int, selection int, points int) error {
+func MakePick(username string, selection int, points int) error {
 	var pick Picks
-	err := db.SelectOne(&pick, "SELECT * FROM picks WHERE id = $1", id)
+	err := db.SelectOne(&pick, `SELECT *
+				    FROM picks JOIN users ON users.id = picks.id
+				    WHERE users.id = $1`, username)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -153,4 +156,56 @@ func MakePick(id int, selection int, points int) error {
 	_, err = db.Update(&pick)
 
 	return err
+}
+
+func UpdatePick(p *Picks) error {
+	_, err := db.Update(p)
+	if err != nil {
+		log.Fatalf("Update: %s", err.Error())
+	}
+
+	return err
+}
+
+type PickSelection struct {
+	Picks
+	AwayId int64
+	HomeId int64
+}
+
+func CLIPickSelections(user string, year, week int) []PickSelection {
+	var userID int64
+	err := db.SelectOne(&userID, "SELECT id from users WHERE email = $1", user)
+	if err != nil {
+		log.Fatalf("UserId: %s", err.Error())
+	}
+	fmt.Printf("%d\n", userID)
+
+	var picks []PickSelection
+	weekID := WeekId(year, week)
+	_, err = db.Select(&picks, `SELECT picks.*, games.away_id AS AwayId, games.home_id AS HomeId 
+				    FROM picks INNER JOIN games ON picks.game_id = games.id
+				    WHERE picks.user_id = $1 AND games.week_id = $2"`, userID, weekID)
+	if err != nil {
+		log.Fatalf("PickSelection: %s", err.Error())
+	}
+
+	return picks
+}
+
+func CreateSeasonPicks(year int) {
+	users := AllUsers()
+	games := GamesBySeason(year)
+	for _, g := range games {
+		for _, u := range users {
+			tmp := &Picks{
+				UserId: u.Id,
+				GameId: g.Id,
+			}
+			err := db.Insert(tmp)
+			if err != nil {
+				log.Fatalf("Insert error: %s", err.Error())
+			}
+		}
+	}
 }

@@ -7,16 +7,8 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/coopernurse/gorp"
+	"github.com/ameske/nfl-pickem/database"
 )
-
-var (
-	db *gorp.DbMap
-)
-
-func init() {
-	//	db = database.NflDb("host=localhost port=5432")
-}
 
 func main() {
 	flag.Parse()
@@ -25,6 +17,12 @@ func main() {
 	if len(args) == 0 {
 		Help()
 		return
+	}
+
+	// TODO - Hook this into the pickem config
+	err := database.SetDefaultDb("host=localhost port=5432")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// Select the appropriate subcommand

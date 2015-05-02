@@ -76,7 +76,7 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 		}
 		points, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", p)), 10, 32)
 
-		err := database.MakePick(int(id), int(selection), int(points))
+		err := database.MakePick(user, int(selection), int(points))
 		if err != nil {
 			log.Fatalf("ProcessPicks: %s", err.Error())
 		}

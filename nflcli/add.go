@@ -8,7 +8,6 @@ import (
 	"text/tabwriter"
 
 	"github.com/ameske/nfl-pickem/database"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // Add is the subcommand hub for the "add" actions
@@ -84,19 +83,14 @@ func AddUser(args []string) {
 		log.Fatalf("Desired password required. Use --password <pass> to specify.")
 	}
 
-	bpass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-
-	newUser := &database.Users{
+	newUser := database.Users{
 		FirstName: first,
 		LastName:  last,
 		Email:     email,
-		Password:  string(bpass),
+		Password:  password,
 	}
 
-	err = db.Insert(newUser)
+	err = database.AddUser(newUser)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -125,30 +119,9 @@ func AddPicks(args []string) {
 		return
 	}
 
-	teams := database.TeamMap(db)
+	teams := database.TeamMap()
 
-	var userID int64
-	err = db.SelectOne(&userID, "SELECT id from users WHERE email = $1", user)
-	if err != nil {
-		log.Fatalf("UserId: %s", err.Error())
-	}
-	fmt.Printf("%d\n", userID)
-
-	type PickSelection struct {
-		database.Picks
-		AwayId int64
-		HomeId int64
-	}
-
-	var picks []PickSelection
-	weekID := database.WeekId(db, year, week)
-	_, err = db.Select(&picks, `SELECT picks.*, games.away_id AS AwayId, games.home_id AS HomeId 
-				    FROM picks INNER JOIN games ON picks.game_id = games.id
-				    WHERE picks.user_id = $1 AND games.week_id = $2"`, userID, weekID)
-	if err != nil {
-		log.Fatalf("PickSelection: %s", err.Error())
-	}
-
+	picks := database.CLIPickSelections(user, year, week)
 	// For each pick, display the pick and prompt for selection and point value
 	for _, p := range picks {
 		var selection, points int
@@ -170,9 +143,7 @@ func AddPicks(args []string) {
 			valid = true
 		}
 
-		p.Picks.Selection = selection
-		p.Picks.Points = points
-		_, err := db.Update(&p.Picks)
+		err := database.MakePick(user, selection, points)
 		if err != nil {
 			log.Fatalf("Updating Pick: %s", err.Error())
 		}
@@ -180,15 +151,8 @@ func AddPicks(args []string) {
 
 	// Have the user verify the picks that were just made. We have already updated the database, but
 	// since this is designed to be an admin only app we can get away with it.
-	var enteredPicks []PickSelection
-	_, err = db.Select(&enteredPicks, `SELECT picks.*, games.away_id AS AwayId, games.home_id AS HomeId
-					   FROM picks INNER JOIN games ON picks.game_id = games.id
-					   WHERE picks.user_id = $1 AND games.week_id = $2"`, userID, weekID)
-	if err != nil {
-		log.Fatalf("PickSelection Verify: %s", err.Error())
-	}
-
 	fmt.Printf("Picks successfully entered. Please verify.\n")
+	enteredPicks := database.CLIPickSelections(user, year, week)
 	for _, p := range enteredPicks {
 		fmt.Printf("Game: (1) %s at (2) %s\n", teams[p.AwayId], teams[p.HomeId])
 		fmt.Printf("Selection: %d \t Points: %d\n\n", p.Picks.Selection, p.Picks.Points)

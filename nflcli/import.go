@@ -83,7 +83,7 @@ func ImportScores(args []string) {
 	}
 
 	if year == -1 || week == -1 {
-		year, week = database.CurrentWeek(db)
+		year, week = database.CurrentWeek()
 	}
 
 	cmd := exec.Command("weeklyScores", strconv.Itoa(year), strconv.Itoa(week))
@@ -109,43 +109,9 @@ func ImportScores(args []string) {
 	}
 
 	for _, result := range results {
-		// Lookup the year ID
-		var yearId int64
-		err = db.SelectOne(&yearId, "SELECT id FROM years WHERE year = $1", result.Year)
+		err := database.UpdateScores(result.Week, result.Year, result.Home, result.HomeScore, result.AwayScore)
 		if err != nil {
-			log.Fatalf("%s", err.Error())
-		}
-
-		// Lookup the week ID
-		var weekId int64
-		err = db.SelectOne(&weekId, "SELECT id FROM weeks WHERE year_id = $1 AND week = $2", yearId, result.Week)
-		if err != nil {
-			log.Fatalf("%s", err.Error())
-		}
-
-		// Lookup the home team ID
-		var teamId int64
-		err = db.SelectOne(&teamId, "SELECT id FROM teams WHERE nickname = $1", result.Home)
-		if err != nil {
-			log.Fatalf("%s", err.Error())
-		}
-
-		// Lookup the game ID based on the home team and week
-		var game database.Games
-		err = db.SelectOne(&game, "SELECT * FROM Games WHERE week_id = $1 and home_id = $2", weekId, teamId)
-		if err != nil {
-			log.Fatalf("%s", err.Error())
-		}
-
-		// Update the scores for that game
-		game.HomeScore = result.HomeScore
-		game.AwayScore = result.AwayScore
-
-		count, err := db.Update(&game)
-		if err != nil {
-			log.Fatalf("%s", err.Error())
-		} else if count != 1 {
-			log.Fatalf("More than one game was updated by the update statement.")
+			log.Fatalf("Update Scores: %v", err)
 		}
 	}
 }
@@ -183,32 +149,11 @@ func ImportSchedule(args []string) {
 		}
 	}
 
-	// Construct a mapping of team nicknames to ID's
-	var teams []database.Teams
-	_, err = db.Select(&teams, "SELECT * FROM teams")
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	teamsMap := make(map[string]int64)
-	for _, team := range teams {
-		teamsMap[team.Nickname] = team.Id
-	}
-
 	// Now, construct a game row and add it into postgres
 	for _, game := range games {
-		// Note: Manually update year id!
-		weekId, err := db.SelectInt("SELECT id FROM weeks WHERE week = $1 AND year_id = 1", game.Week)
-		temp := database.Games{
-			WeekId:    weekId,
-			HomeId:    teamsMap[game.Home],
-			AwayId:    teamsMap[game.Away],
-			Date:      game.Date,
-			HomeScore: -1,
-			AwayScore: -1,
-		}
-		err = db.Insert(&temp)
+		err = database.AddGame(game.Week, game.Year, game.Home, game.Away, game.Date)
 		if err != nil {
-			log.Fatalf(err.Error())
+			log.Fatal("AddGame: ", err)
 		}
 	}
 }
@@ -227,13 +172,7 @@ func ImportTeams(args []string) {
 	for scanner.Scan() {
 		teamLine := scanner.Text()
 		splitLine := strings.Split(teamLine, ",")
-		newTeam := &Teams{
-			City:     splitLine[0],
-			Nickname: splitLine[1],
-			Stadium:  splitLine[2],
-		}
-
-		err := db.Insert(newTeam)
+		err := database.AddTeam(splitLine[0], splitLine[1], splitLine[2])
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
