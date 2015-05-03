@@ -141,11 +141,11 @@ func FormPicks(username string, selectedOnly bool) []FormPick {
 	return formGames
 }
 
-func MakePick(username string, selection int, points int) error {
+func MakePick(username string, pickID int64, selection int, points int) error {
 	var pick Picks
-	err := db.SelectOne(&pick, `SELECT *
-				    FROM picks JOIN users ON users.id = picks.id
-				    WHERE users.id = $1`, username)
+	err := db.SelectOne(&pick, `SELECT picks.*
+				    FROM picks JOIN users ON users.id = picks.user_id
+				    WHERE users.email = $1 AND picks.id = $2`, username, pickID)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}

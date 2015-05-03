@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"flag"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,8 +15,9 @@ import (
 
 // For now, we will let all of these things be global since it's easier
 var (
-	store  *sessions.CookieStore
-	router = mux.NewRouter()
+	store              *sessions.CookieStore
+	router             = mux.NewRouter()
+	emailNotifications bool
 )
 
 type Config struct {
@@ -37,6 +39,9 @@ type EmailConfig struct {
 }
 
 func init() {
+	flag.BoolVar(&emailNotifications, "email", false, "Send an e-mail notification for picks")
+	flag.Parse()
+
 	// App configuration
 	config := loadConfig("/opt/ameske/gonfl/conf.json")
 
@@ -50,8 +55,7 @@ func init() {
 	router.HandleFunc("/login", Login)
 	router.Handle("/logout", Protect(Logout))
 	router.Handle("/changePassword", Protect(ChangePassword))
-	router.Handle("/picks", Protect(PicksForm))
-	router.Handle("/picks", Protect(ProcessPicks))
+	router.Handle("/picks", Protect(Picks))
 	router.HandleFunc("/results/{year:[0-9]*}/{week:[0-9]*}", Results)
 	router.HandleFunc("/standings/{year:[0-9]*}/{week:[0-9]*}", Standings)
 }

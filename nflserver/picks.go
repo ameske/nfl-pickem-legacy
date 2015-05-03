@@ -11,9 +11,18 @@ import (
 	"github.com/gorilla/context"
 )
 
+func Picks(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		processPicks(w, r)
+		return
+	}
+
+	picksForm(w, r)
+}
+
 // Picks fetches this week's picks for the current logged in user and renders the
 // picks template with them.
-func PicksForm(w http.ResponseWriter, r *http.Request) {
+func picksForm(w http.ResponseWriter, r *http.Request) {
 	user := currentUser(r)
 
 	picks := database.FormPicks(user, false)
@@ -49,7 +58,7 @@ func PicksForm(w http.ResponseWriter, r *http.Request) {
 }
 
 // ProcessPicks validates a user's picks, and then updates the current picks in the database
-func ProcessPicks(w http.ResponseWriter, r *http.Request) {
+func processPicks(w http.ResponseWriter, r *http.Request) {
 	user := currentUser(r)
 
 	r.ParseForm()
@@ -69,34 +78,37 @@ func ProcessPicks(w http.ResponseWriter, r *http.Request) {
 		}
 
 		context.Set(r, "error", message.String())
-		PicksForm(w, r)
+		picksForm(w, r)
 		return
 	}
 
 	// Update the picks in the database based on the user's selection, ignoring unselected picks
 	for _, p := range pickedGames {
+		pickID, _ := strconv.ParseInt(p, 10, 64)
 		selection, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Selection", p)), 10, 32)
 		if selection == 0 {
 			continue
 		}
 		points, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", p)), 10, 32)
 
-		err := database.MakePick(user, int(selection), int(points))
+		err := database.MakePick(user, pickID, int(selection), int(points))
 		if err != nil {
 			log.Fatalf("ProcessPicks: %s", err.Error())
 		}
 	}
 
-	selectedPicks := database.FormPicks(user, true)
-	_, week := database.CurrentWeek()
-	SendPicksEmail(user,
-		fmt.Sprintf("Current Week %d Picks", week),
-		week,
-		selectedPicks,
-	)
+	if emailNotifications {
+		selectedPicks := database.FormPicks(user, true)
+		_, week := database.CurrentWeek()
+		SendPicksEmail(user,
+			fmt.Sprintf("Current Week %d Picks", week),
+			week,
+			selectedPicks,
+		)
+	}
 
 	context.Set(r, "success", "Picks submitted successfully!")
-	PicksForm(w, r)
+	picksForm(w, r)
 }
 
 // validate handles server side validation of the point distribution of a submitted
@@ -155,5 +167,5 @@ func validate(user string, updatedPicks []string, r *http.Request) (threes, five
 		}
 	}
 
-	return three > pvs.Three, five > pvs.Five, seven > pvs.Seven
+	return three <= pvs.Three, five <= pvs.Five, seven <= pvs.Seven
 }
