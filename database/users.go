@@ -57,7 +57,7 @@ func AllUsers() []Users {
 
 func UserId(username string) int64 {
 	var userId int64
-	err := db.SelectOne(&userId, "SELECT id FROM users WHERE email = $1", username)
+	err := db.SelectOne(&userId, "SELECT id FROM users WHERE email = ?1", username)
 	if err != nil {
 		log.Fatalf("UserId: %s", err.Error())
 	}
@@ -68,7 +68,7 @@ func UserId(username string) int64 {
 func CheckCredentials(user string, password string) bool {
 	var u Users
 
-	_ = db.SelectOne(&u, "SELECT * FROM users WHERE email = $1", user)
+	_ = db.SelectOne(&u, "SELECT * FROM users WHERE email = ?1", user)
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 
 	return err == nil
@@ -76,7 +76,7 @@ func CheckCredentials(user string, password string) bool {
 
 func UpdatePassword(user string, newPassword []byte) {
 	var u Users
-	err := db.SelectOne(&u, "SELECT * FROM users WHERE email = $1", user)
+	err := db.SelectOne(&u, "SELECT * FROM users WHERE email = ?1", user)
 	if err != nil {
 		log.Fatalf("UpdatePassword: %s", err.Error())
 	}

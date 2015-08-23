@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 '''
 weeklyScores.py
@@ -14,7 +14,7 @@ import urllib2
 import json
 import sys
 
-schedule_url = 'http://www.nfl.com/schedules/2014/REG'
+schedule_url = 'http://www.nfl.com/schedules/2015/REG'
 year = -1
 week = -1
 
@@ -45,7 +45,7 @@ def away_team_score_lost(tag):
 def get_results(year, week_no):
     #FETCH THE HTML WITH THE SCORES EMBEDDED
     page = urllib2.urlopen(schedule_url + str(week_no))
-    resultsHTML = BeautifulSoup(page.read())
+    resultsHTML = BeautifulSoup(page.read(), "html.parser")
     
     #WE CAN UNIQUELY ID A GAME BASED ON THE HOME TEAM, GATHER THEM AND THE SCORES
     home_teams          = [ str(tag.string) for tag in resultsHTML.find_all(home_team) ]

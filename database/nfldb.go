@@ -2,17 +2,15 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/coopernurse/gorp"
-	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var db *gorp.DbMap
 
 func SetDefaultDb(conn string) error {
-	fullConnString := fmt.Sprintf("%s user=nfl database=nfl_app sslmode=disable", conn)
-	dbConn, err := sql.Open("postgres", fullConnString)
+	dbConn, err := sql.Open("sqlite3", conn)
 	if err != nil {
 		return err
 	}
@@ -22,7 +20,7 @@ func SetDefaultDb(conn string) error {
 		return err
 	}
 
-	db = &gorp.DbMap{Db: dbConn, Dialect: gorp.PostgresDialect{}}
+	db = &gorp.DbMap{Db: dbConn, Dialect: gorp.SqliteDialect{}}
 	db.AddTableWithName(Users{}, "users").SetKeys(true, "Id")
 	db.AddTableWithName(Pvs{}, "pvs").SetKeys(true, "Id")
 	db.AddTableWithName(Teams{}, "teams").SetKeys(true, "Id")

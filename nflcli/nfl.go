@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DefaultDatabase = "host=localhost port=5432"
+	DefaultDatabase = "./nfl.db"
 )
 
 func main() {

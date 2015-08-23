@@ -7,13 +7,13 @@ import (
 )
 
 type Games struct {
-	Id        int64     `db:"id"`
-	WeekId    int64     `db:"week_id"`
-	Date      time.Time `db:"date"`
-	HomeId    int64     `db:"home_id"`
-	AwayId    int64     `db:"away_id"`
-	HomeScore int       `db:"home_score"`
-	AwayScore int       `db:"away_score"`
+	Id        int64 `db:"id"`
+	WeekId    int64 `db:"week_id"`
+	Date      int64 `db:"date"`
+	HomeId    int64 `db:"home_id"`
+	AwayId    int64 `db:"away_id"`
+	HomeScore int   `db:"home_score"`
+	AwayScore int   `db:"away_score"`
 }
 
 func GamesBySeason(year int) []Games {
@@ -22,7 +22,7 @@ func GamesBySeason(year int) []Games {
 				 FROM games 
 				 JOIN weeks ON weeks.id = games.week_id
 				 JOIN years ON years.id = weeks.year_id
-				 WHERE years.year = $1`, year)
+				 WHERE years.year = ?1`, year)
 	if err != nil {
 		log.Fatalf("GamesBySeason: %s", err.Error())
 	}
@@ -32,7 +32,7 @@ func GamesBySeason(year int) []Games {
 
 func WeeklyGames(year, week int) []Games {
 	var games []Games
-	_, err := db.Select(&games, "SELECT games.* FROM games JOIN weeks ON weeks.id = games.week_id JOIN years ON years.id = weeks.year_id WHERE year = $1 AND week = $2 ORDER BY date ASC, games.id ASC", year, week)
+	_, err := db.Select(&games, "SELECT games.* FROM games JOIN weeks ON weeks.id = games.week_id JOIN years ON years.id = weeks.year_id WHERE year = ?1 AND week = ?2 ORDER BY date ASC, games.id ASC", year, week)
 	if err != nil {
 		log.Fatalf("WeeklyGames: %s", err.Error())
 	}
@@ -53,28 +53,28 @@ func GamesMap(games []Games) map[int64]Games {
 func UpdateScores(week int, year int, homeTeam string, homeScore int, awayScore int) error {
 	// Lookup the year ID
 	var yearId int64
-	err := db.SelectOne(&yearId, "SELECT id FROM years WHERE year = $1", year)
+	err := db.SelectOne(&yearId, "SELECT id FROM years WHERE year = ?1", year)
 	if err != nil {
 		log.Fatalf("%s", err.Error())
 	}
 
 	// Lookup the week ID
 	var weekId int64
-	err = db.SelectOne(&weekId, "SELECT id FROM weeks WHERE year_id = $1 AND week = $2", yearId, week)
+	err = db.SelectOne(&weekId, "SELECT id FROM weeks WHERE year_id = ?1 AND week = ?2", yearId, week)
 	if err != nil {
 		log.Fatalf("%s", err.Error())
 	}
 
 	// Lookup the home team ID
 	var teamId int64
-	err = db.SelectOne(&teamId, "SELECT id FROM teams WHERE nickname = $1", homeTeam)
+	err = db.SelectOne(&teamId, "SELECT id FROM teams WHERE nickname = ?1", homeTeam)
 	if err != nil {
 		log.Fatalf("%s", err.Error())
 	}
 
 	// Lookup the game ID based on the home team and week
 	var game Games
-	err = db.SelectOne(&game, "SELECT * FROM Games WHERE week_id = $1 and home_id = $2", weekId, teamId)
+	err = db.SelectOne(&game, "SELECT * FROM Games WHERE week_id = ?1 and home_id = ?2", weekId, teamId)
 	if err != nil {
 		log.Fatalf("%s", err.Error())
 	}
@@ -93,23 +93,23 @@ func UpdateScores(week int, year int, homeTeam string, homeScore int, awayScore 
 	return nil
 }
 
-func AddGame(week int, year int, homeTeam string, awayTeam string, date time.Time) error {
-	yearID, err := db.SelectInt("SELECT id FROM years WHERE year = $1", year)
+func AddGame(week int, year int, homeTeam string, awayTeam string, date int64) error {
+	yearID, err := db.SelectInt("SELECT id FROM years WHERE year = ?1", year)
 	if err != nil {
 		return err
 	}
 
-	weekId, err := db.SelectInt("SELECT id FROM weeks WHERE week = $1 AND year_id = 1", week, yearID)
+	weekId, err := db.SelectInt("SELECT id FROM weeks WHERE week = ?1 AND year_id = 1", week, yearID)
 	if err != nil {
 		return err
 	}
 
-	homeID, err := db.SelectInt("SELECT id from teams WHERE nickname = $1", homeTeam)
+	homeID, err := db.SelectInt("SELECT id from teams WHERE nickname = ?1", homeTeam)
 	if err != nil {
 		return err
 	}
 
-	awayID, err := db.SelectInt("SELECT id from teams WHERE nickname = $1", awayTeam)
+	awayID, err := db.SelectInt("SELECT id from teams WHERE nickname = ?1", awayTeam)
 	if err != nil {
 		return err
 	}
@@ -153,8 +153,8 @@ func CreateRandomGames(week int, year int) error {
 	return nil
 }
 
-func nextSunday() time.Time {
+func nextSunday() int64 {
 	t := time.Now()
 
-	return t.AddDate(0, 0, 7-int(t.Weekday()))
+	return t.AddDate(0, 0, 7-int(t.Weekday())).Unix()
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"math"
 
@@ -68,6 +69,6 @@ func Grade(args []string) {
 				log.Fatalf("Update: %s", err.Error())
 			}
 		}
-
+		fmt.Printf("%s: %d\n", u.FirstName, total)
 	}
 }

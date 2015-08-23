@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -16,7 +15,6 @@ import (
 	"time"
 
 	"github.com/ameske/nfl-pickem/database"
-	_ "github.com/lib/pq"
 )
 
 // Import is the dispatch hub for the "import" subcommand
@@ -117,36 +115,63 @@ func ImportScores(args []string) {
 }
 
 type GameJson struct {
-	Week       int       `json:"week"`
-	Home       string    `json:"home"`
-	Away       string    `json:"away"`
-	DateString string    `json:"date"`
-	Date       time.Time `json:"-"`
-	Year       int       `json:"year"`
+	Week       int    `json:"week"`
+	Home       string `json:"home"`
+	Away       string `json:"away"`
+	DateString string `json:"date"`
+	Date       int64  `json:"-"`
+	Year       int    `json:"year"`
 }
 
 // ImportSchedule scrapes the nfl.com website for the request year's schedule using a
 // helper script and inserts the games into the database.
 func ImportSchedule(args []string) {
+	var year int
+	var endweek int
+
+	f := flag.NewFlagSet("import schedule", flag.ExitOnError)
+	f.IntVar(&year, "year", -1, "Year")
+	f.IntVar(&endweek, "endweek", 18, "End Week")
+
+	err := f.Parse(args)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if year == -1 {
+		log.Fatal("year required for import schedule")
+	}
+
+	cmd := exec.Command("scrapeSchedule", strconv.Itoa(year), strconv.Itoa(endweek))
+	pipe, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatalf("Pipe: %s", err.Error())
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		log.Fatalf("Start: %s", err.Error())
+	}
+
 	games := make([]*GameJson, 0)
-
-	// Open the 2014 schedule, and parse the json into our golang struct
-	bytes, err := ioutil.ReadFile("json/2014/2014-Schedule.json")
+	err = json.NewDecoder(pipe).Decode(&games)
 	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	err = json.Unmarshal(bytes, &games)
-	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatalf("Decode: %s", err.Error())
 	}
 
-	// Convert the time string into a time.Time for postgres
+	err = cmd.Wait()
+	if err != nil {
+		log.Fatalf("Wait: %s", err.Error())
+	}
+
+	// Convert the time string into a time.Time for sqlite
 	for _, game := range games {
 		estDateString := game.DateString + " EST"
-		game.Date, err = time.Parse("2006-01-02T15:04:05 MST", estDateString)
+		t, err := time.Parse("2006-01-02T15:04:05 MST", estDateString)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
+		game.Date = t.Unix()
 	}
 
 	// Now, construct a game row and add it into postgres
@@ -156,13 +181,6 @@ func ImportSchedule(args []string) {
 			log.Fatal("AddGame: ", err)
 		}
 	}
-}
-
-type Teams struct {
-	Id       int64  `db:"id"`
-	City     string `db:"city"`
-	Nickname string `db:"nickname"`
-	Stadium  string `db:"stadium"`
 }
 
 func ImportTeams(args []string) {

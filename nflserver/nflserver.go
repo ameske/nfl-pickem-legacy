@@ -18,6 +18,7 @@ var (
 	store              *sessions.CookieStore
 	router             = mux.NewRouter()
 	emailNotifications bool
+	configPath         string
 )
 
 type Config struct {
@@ -26,9 +27,9 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	AuthKey            string `json:"authKey"`
-	EncryptKey         string `json:"encryptKey"`
-	PostgresConnString string `json:"postgresConnString"`
+	AuthKey      string `json:"authKey"`
+	EncryptKey   string `json:"encryptKey"`
+	DatabaseFile string `json:"databaseFile"`
 }
 
 type EmailConfig struct {
@@ -40,12 +41,13 @@ type EmailConfig struct {
 
 func init() {
 	flag.BoolVar(&emailNotifications, "email", false, "Send an e-mail notification for picks")
+	flag.StringVar(&configPath, "config", "/opt/ameske/gonfl/conf.json", "Path to server config file")
 	flag.Parse()
 
 	// App configuration
-	config := loadConfig("/opt/ameske/gonfl/conf.json")
+	config := loadConfig(configPath)
 
-	database.SetDefaultDb(config.Server.PostgresConnString)
+	database.SetDefaultDb(config.Server.DatabaseFile)
 
 	configureSessionStore(config)
 	configureEmail(config)
@@ -62,7 +64,7 @@ func init() {
 
 func main() {
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
-	log.Fatal(http.ListenAndServe(":61389", router))
+	log.Fatal(http.ListenAndServe("0.0.0.0:61389", router))
 }
 
 func loadConfig(path string) Config {

@@ -2,15 +2,11 @@
 * Database definition script for nfl_app
 *
 * Author: Kyle Ames
-* Last Updated: September 7, 2014
+* Last Updated: August 23, 2015
 */
 
-CREATE ROLE nfl WITH LOGIN;
-CREATE DATABASE nfl_app WITH OWNER nfl;
-\c nfl_app;
-
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
+    id integer PRIMARY KEY,
     first_name text NOT NULL,
     last_name text NOT NULL,
     email text NOT NULL UNIQUE,
@@ -20,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS pvs (
-    id SERIAL PRIMARY KEY,
+    id integer PRIMARY KEY,
     type varchar(1) NOT NULL UNIQUE,
     seven integer NOT NULL,
     five integer NOT NULL,
@@ -29,7 +25,7 @@ CREATE TABLE IF NOT EXISTS pvs (
 );
 
 CREATE TABLE IF NOT EXISTS teams (
-    id SERIAL PRIMARY KEY,
+    id integer PRIMARY KEY,
     city varchar(64) NOT NULL,
     nickname varchar(64) NOT NULL,
     stadium varchar(64) NOT NULL,
@@ -37,41 +33,41 @@ CREATE TABLE IF NOT EXISTS teams (
 );
 
 CREATE TABLE IF NOT EXISTS years (
-    id SERIAL PRIMARY KEY,
+    id integer PRIMARY KEY,
     year integer NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS weeks (
-    id SERIAL PRIMARY KEY,
-    year_id integer REFERENCES years ON DELETE CASCADE,
-    pvs_id integer REFERENCES pvs,
+    id integer PRIMARY KEY,
+    year_id integer REFERENCES years(id) ON DELETE CASCADE,
+    pvs_id integer REFERENCES pvs(id),
     week integer NOT NULL,
     week_start integer
 );
 
 CREATE TABLE IF NOT EXISTS games (
-    id SERIAL PRIMARY KEY,
-    week_id integer REFERENCES weeks ON DELETE CASCADE,
-    date timestamp NOT NULL,
-    home_id integer REFERENCES teams,
-    away_id integer REFERENCES teams,
+    id integer PRIMARY KEY,
+    week_id integer REFERENCES weeks(id) ON DELETE CASCADE,
+    date integer NOT NULL,
+    home_id integer REFERENCES teams(id),
+    away_id integer REFERENCES teams(id),
     home_score integer DEFAULT -1,
     away_score integer DEFAULT -1
 );
 
 CREATE TABLE IF NOT EXISTS picks (
-    id SERIAL PRIMARY KEY,
-    user_id integer REFERENCES users,
-    game_id integer REFERENCES games,
+    id integer PRIMARY KEY,
+    user_id integer REFERENCES users(id),
+    game_id integer REFERENCES games(id),
     selection integer DEFAULT -1,
     points integer DEFAULT 0, 
     correct boolean
 );
 
 CREATE TABLE IF NOT EXISTS statistics (
-    id SERIAL PRIMARY KEY,
-    user_id integer REFERENCES users,
-    week_id integer REFERENCES weeks,
+    id integer PRIMARY KEY,
+    user_id integer REFERENCES users(id),
+    week_id integer REFERENCES weeks(id),
     zero integer,
     one integer,
     three integer,
@@ -80,12 +76,3 @@ CREATE TABLE IF NOT EXISTS statistics (
     winner boolean,
     lowest boolean
 );
-
-ALTER TABLE picks OWNER TO nfl;
-ALTER TABLE games OWNER TO nfl;
-ALTER TABLE years OWNER TO nfl;
-ALTER TABLE weeks OWNER TO nfl;
-ALTER TABLE teams OWNER TO nfl;
-ALTER TABLE users OWNER TO nfl;
-ALTER TABLE pvs OWNER TO nfl;
-ALTER TABLE statistics OWNER TO nfl;

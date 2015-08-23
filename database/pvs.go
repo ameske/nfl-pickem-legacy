@@ -29,7 +29,7 @@ func WeekPvs() Pvs {
 		FROM weeks
 		JOIN years ON years.id = weeks.year_id
 		JOIN pvs ON pvs.id = weeks.pvs_id
-		WHERE years.year = $1 AND weeks.week = $2`
+		WHERE years.year = ?1 AND weeks.week = ?2`
 
 	year, week := CurrentWeek()
 	err := db.SelectOne(&pvs, sql, year, week)
@@ -41,5 +41,5 @@ func WeekPvs() Pvs {
 }
 
 func pvsID(typeID string) (int64, error) {
-	return db.SelectInt("SELECT id FROM pvs WHERE type = $1", typeID)
+	return db.SelectInt("SELECT id FROM pvs WHERE type = ?1", typeID)
 }

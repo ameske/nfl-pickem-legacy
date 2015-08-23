@@ -36,7 +36,7 @@ func NewWeek(week int, weekStart int64, year int, typeID string) error {
 
 func weekID(week, year int) (int64, error) {
 	var weekId int64
-	err := db.SelectOne(&weekId, "SELECT weeks.id FROM weeks JOIN years ON weeks.year_id = years.id WHERE years.year = $1 AND weeks.week = $2", year, week)
+	err := db.SelectOne(&weekId, "SELECT weeks.id FROM weeks JOIN years ON weeks.year_id = years.id WHERE years.year = ?1 AND weeks.week = ?2", year, week)
 	if err != nil {
 		log.Println("Couldn't get weekID")
 		return -1, err
@@ -48,7 +48,7 @@ func weekID(week, year int) (int64, error) {
 func CurrentWeek() (year, week int) {
 	t := time.Now().Unix()
 	year = time.Now().Year()
-	err := db.SelectOne(&week, "SELECT MAX(week) FROM weeks JOIN years ON years.id = weeks.year_id WHERE year = $1 AND $2 > weeks.week_start", year, t)
+	err := db.SelectOne(&week, "SELECT MAX(week) FROM weeks JOIN years ON years.id = weeks.year_id WHERE year = ?1 AND ?2 > weeks.week_start", year, t)
 	if err != nil {
 		log.Fatalf("CurrentWeek: %s", err.Error())
 	}

@@ -10,10 +10,7 @@ import (
 	"github.com/ameske/nfl-pickem/database"
 )
 
-// Add is the subcommand hub for the "add" actions
 func Add(args []string) {
-	log.Println("Reached the add subcommand")
-
 	if len(args) == 0 {
 		AddHelp()
 		return
@@ -21,11 +18,9 @@ func Add(args []string) {
 
 	switch args[0] {
 	case "user":
-		log.Println("Reached the add-user subcommand")
-		//AddUser(args[1:])
+		AddUser(args[1:])
 	case "picks":
-		log.Println("Reached the add-picks subcommand")
-		//AddPicks(args[1:])
+		AddPicks(args[1:])
 	case "help":
 		AddHelp()
 
@@ -69,7 +64,6 @@ func AddUser(args []string) {
 		log.Fatal(err)
 	}
 
-	// Check to see if required arguments were given
 	if first == "" {
 		log.Fatalf("First name is required. Use --first <firstname> to specify.")
 	}
@@ -143,7 +137,7 @@ func AddPicks(args []string) {
 			valid = true
 		}
 
-		err := database.MakePick(user, selection, points)
+		err := database.MakePick(user, p.Id, selection, points)
 		if err != nil {
 			log.Fatalf("Updating Pick: %s", err.Error())
 		}

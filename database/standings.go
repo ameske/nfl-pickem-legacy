@@ -23,7 +23,7 @@ func Standings(year, week int) []*StandingsPage {
 		    JOIN weeks ON weeks.id = games.week_id
 		    JOIN years ON weeks.year_id = years.id
 		    JOIN users ON users.id = picks.user_id 
-		    WHERE picks.correct = True AND years.year = $1 AND weeks.week = $2
+		    WHERE picks.correct = 1 AND years.year = ?1 AND weeks.week = ?2
 		    GROUP BY weeks.id, users.first_name) temp
 		GROUP BY temp.first_name ORDER BY points DESC`
 
@@ -36,7 +36,7 @@ func Standings(year, week int) []*StandingsPage {
 		    JOIN weeks ON weeks.id = games.week_id
 		    JOIN years ON weeks.year_id = years.id
 		    JOIN users ON users.id = picks.user_id 
-		    WHERE picks.correct = True AND years.year = $1 AND weeks.week <= $2
+		    WHERE picks.correct = 1 AND years.year = ?1 AND weeks.week <= ?2
 		    GROUP BY weeks.id, users.first_name) temp
 		GROUP BY temp.first_name ORDER BY points DESC`
 	}

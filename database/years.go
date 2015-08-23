@@ -14,5 +14,5 @@ func NewYear(year int) error {
 }
 
 func yearID(year int) (int64, error) {
-	return db.SelectInt("SELECT id FROM years WHERE year = $1", year)
+	return db.SelectInt("SELECT id FROM years WHERE year = ?1", year)
 }

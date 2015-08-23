@@ -26,7 +26,7 @@ type GoNflTemplate struct {
 	t *template.Template
 }
 
-func (t *GoNflTemplate) Execute(w io.Writer, user string, content interface{}) {
+func (t *GoNflTemplate) Execute(w io.Writer, user string, content interface{}) error {
 	data := struct {
 		User    string
 		Content interface{}
@@ -35,7 +35,7 @@ func (t *GoNflTemplate) Execute(w io.Writer, user string, content interface{}) {
 		Content: content,
 	}
 
-	t.t.Execute(w, data)
+	return t.t.Execute(w, data)
 }
 
 // Fetch returns the specified template, creating it and adding it to the
