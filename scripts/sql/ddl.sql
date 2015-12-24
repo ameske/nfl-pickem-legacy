@@ -2,7 +2,7 @@
 * Database definition script for nfl_app
 *
 * Author: Kyle Ames
-* Last Updated: August 23, 2015
+* Last Updated: December 24, 2015
 */
 
 CREATE TABLE IF NOT EXISTS users (
@@ -76,3 +76,41 @@ CREATE TABLE IF NOT EXISTS statistics (
     winner boolean,
     lowest boolean
 );
+
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Buffalo', 'Bills', 'Ralph Wilson Stadium', 'BUF');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Miami', 'Dolphins', 'Sun Life Stadium', 'MIA');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('New England', 'Patriots', 'Gilette Stadium', 'NE');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('New York', 'Jets', 'MetLife Stadium', 'NYJ');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Baltimore', 'Ravens', 'M&T Bank Stadium', 'BAL');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Cincinatti', 'Bengals', 'Paul Brown Stadium', 'CIN');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Cleveland', 'Browns', 'First Energy Stadium', 'CLE');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Pittsburgh', 'Steelers', 'Heinz Field', 'PIT');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Houston', 'Texans', 'Reliant Stadium', 'HOU');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Indianapolis', 'Colts', 'Lucas Oil Stadium', 'IND');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Jacksonville', 'Jaguars', 'EverBank Field', 'JAX');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Tennessee', 'Titans', 'LP Field', 'TEN');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Denver', 'Broncos', 'Mile High Stadium', 'DEN');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Kansas City', 'Chiefs', 'Arrowhead Stadium', 'KC');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Oakland', 'Raiders', 'O.co Coliseum', 'OAK');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('San Diego', 'Chargers', 'Qualcomm Stadium', 'SD');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Dallas', 'Cowboys', 'AT&T Stadium', 'DAL');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('New York', 'Giants', 'MetLife Stadium', 'NYG');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Philadelphia', 'Eagles', 'Lincoln Financial Field', 'PHI');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Washington', 'Redskins', 'FedEx Field', 'WAS');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Chicago', 'Bears', 'Soldier Field', 'CHI');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Detroit', 'Lions', 'Ford Field', 'DET');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Green Bay', 'Packers', 'Lambeau Field', 'GB');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Minnesota', 'Vikings', 'TCF Bank Stadium', 'MIN');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Atlanta', 'Falcons', 'Georiga Dome', 'ATL');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Carolina', 'Panthers', 'Bank of America Stadium', 'CAR');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('New Orleans', 'Saints', 'Mercedes-Benz Superdome', 'NO');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Tampa Bay', 'Buccaneers', 'Raymond James Stadium', 'TB');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Arizona', 'Cardinals', 'University of Phoenix Stadium', 'ARI');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('St. Louis', 'Rams', 'Edward Jones Dome', 'STL');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('San Francisco', '49ers', 'Candlestick Park', 'SF');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Seattle', 'Seahawks', 'CenturyLink Field', 'SEA');
+
+INSERT INTO pvs (type, seven, five, three, one) VALUES ('A', 1, 2, 5, 8);
+INSERT INTO pvs (type, seven, five, three, one) VALUES ('B', 1, 2, 5, 7);
+INSERT INTO pvs (type, seven, five, three, one) VALUES ('C', 1, 2, 5, 6);
+INSERT INTO pvs (type, seven, five, three, one) VALUES ('D', 1, 2, 5, 5);

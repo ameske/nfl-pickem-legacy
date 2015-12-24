@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -10,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -30,8 +27,6 @@ func Import(args []string) {
 		ImportSchedule(args[1:])
 	case "scores":
 		ImportScores(args[1:])
-	case "teams":
-		ImportTeams(args[1:])
 	case "help":
 		ImportHelp()
 	default:
@@ -182,50 +177,3 @@ func ImportSchedule(args []string) {
 		}
 	}
 }
-
-func ImportTeams(args []string) {
-	scanner := bufio.NewScanner(bytes.NewBufferString(teams))
-
-	// Line by line, get the information and load it into the DB
-	for scanner.Scan() {
-		teamLine := scanner.Text()
-		splitLine := strings.Split(teamLine, ",")
-		err := database.AddTeam(splitLine[0], splitLine[1], splitLine[2])
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-	}
-}
-
-var teams = `Buffalo,Bills,Ralph Wilson Stadium
-Miami,Dolphins,Sun Life Stadium
-New England,Patriots,Gilette Stadium
-New York,Jets,MetLife Stadium
-Baltimore,Ravens,M&T Bank Stadium
-Cincinatti,Bengals,Paul Brown Stadium
-Cleveland,Browns,First Energy Stadium
-Pittsburgh,Steelers,Heinz Field
-Houston,Texans,Reliant Stadium
-Indianapolis,Colts,Lucas Oil Stadium
-Jacksonville,Jaguars,EverBank Field
-Tennessee,Titans,LP Field
-Denver,Broncos,Mile High Stadium
-Kansas City,Chiefs,Arrowhead Stadium
-Oakland,Raiders,O.co Coliseum
-San Diego,Chargers,Qualcomm Stadium
-Dallas,Cowboys,AT&T Stadium
-New York,Giants,MetLife Stadium
-Philadelphia,Eagles,Lincoln Financial Field
-Washington,Redskins,FedEx Field
-Chicago,Bears,Soldier Field
-Detroit,Lions,Ford Field
-Green Bay,Packers,Lambeau Field
-Minnesota,Vikings,TCF Bank Stadium
-Atlanta,Falcons,Georiga Dome
-Carolina,Panthers,Bank of America Stadium
-New Orleans,Saints,Mercedes-Benz Superdome
-Tampa Bay,Buccaneers,Raymond James Stadium
-Arizona,Cardinals,University of Phoenix Stadium
-St. Louis,Rams,Edward Jones Dome
-San Francisco,49ers,Candlestick Park
-Seattle,Seahawks,CenturyLink Field`
