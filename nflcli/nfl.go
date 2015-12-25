@@ -42,8 +42,6 @@ func main() {
 		Grade(args[1:])
 	case "generate":
 		Generate(args[1:])
-	case "testdata":
-		TestData(args[1:])
 	case "help":
 		Help()
 	default:
@@ -61,7 +59,6 @@ func Help() {
 	fmt.Fprintln(w, "\timport\t Import information into the database")
 	fmt.Fprintln(w, "\tgrade\t Grade a given week's picks")
 	fmt.Fprintln(w, "\tgenerate\t Generate HTML based on information in the database")
-	fmt.Fprintln(w, "\ttestdata\t Create or modify test data")
 	fmt.Fprintln(w, "\thelp\t Display this message")
 	fmt.Fprintf(w, "\n")
 
