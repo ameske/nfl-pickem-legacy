@@ -87,7 +87,7 @@ INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Cleveland', 'Br
 INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Pittsburgh', 'Steelers', 'Heinz Field', 'PIT');
 INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Houston', 'Texans', 'Reliant Stadium', 'HOU');
 INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Indianapolis', 'Colts', 'Lucas Oil Stadium', 'IND');
-INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Jacksonville', 'Jaguars', 'EverBank Field', 'JAX');
+INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Jacksonville', 'Jaguars', 'EverBank Field', 'JAC');
 INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Tennessee', 'Titans', 'LP Field', 'TEN');
 INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Denver', 'Broncos', 'Mile High Stadium', 'DEN');
 INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Kansas City', 'Chiefs', 'Arrowhead Stadium', 'KC');
@@ -110,7 +110,7 @@ INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('St. Louis', 'Ra
 INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('San Francisco', '49ers', 'Candlestick Park', 'SF');
 INSERT INTO teams(city, nickname, stadium, abbreviation) VALUES('Seattle', 'Seahawks', 'CenturyLink Field', 'SEA');
 
-INSERT INTO pvs (type, seven, five, three, one) VALUES ('A', 1, 2, 5, 8);
-INSERT INTO pvs (type, seven, five, three, one) VALUES ('B', 1, 2, 5, 7);
-INSERT INTO pvs (type, seven, five, three, one) VALUES ('C', 1, 2, 5, 6);
-INSERT INTO pvs (type, seven, five, three, one) VALUES ('D', 1, 2, 5, 5);
+INSERT INTO pvs(type, seven, five, three, one) VALUES('A', 1, 2, 5, 8);
+INSERT INTO pvs(type, seven, five, three, one) VALUES('B', 1, 2, 5, 7);
+INSERT INTO pvs(type, seven, five, three, one) VALUES('C', 1, 2, 5, 6);
+INSERT INTO pvs(type, seven, five, three, one) VALUES ('D', 1, 2, 5, 5);
