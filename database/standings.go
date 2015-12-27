@@ -3,9 +3,9 @@ package database
 import "log"
 
 type StandingsPage struct {
-	User   string `db:"first_name"`
-	Points int    `db:"points"`
-	Behind int    `db:"-"`
+	User   string
+	Points int
+	Behind int
 }
 
 // Standings returns the state of the pick-em pool as of the given week in the
@@ -41,11 +41,23 @@ func Standings(year, week int) []*StandingsPage {
 		GROUP BY temp.first_name ORDER BY points DESC`
 	}
 
-	var standings []*StandingsPage
-	_, err := db.Select(&standings, sql, year, week)
+	standings := make([]*StandingsPage, 0)
+
+	rows, err := db.Query(sql, year, week)
 	if err != nil {
-		log.Fatalf("standings: %s", err.Error())
+		log.Fatal(err)
 	}
+
+	for rows.Next() {
+		tmp := &StandingsPage{}
+		err := rows.Scan(&tmp.User, &tmp.Points)
+		if err != nil {
+			log.Fatal(err)
+		}
+		standings = append(standings, tmp)
+	}
+
+	rows.Close()
 
 	if len(standings) == 0 {
 		tmpStandings := &StandingsPage{

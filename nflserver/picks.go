@@ -25,10 +25,12 @@ func Picks(w http.ResponseWriter, r *http.Request) {
 func picksForm(w http.ResponseWriter, r *http.Request) {
 	user := currentUser(r)
 
-	picks := database.FormPicks(user, false)
-	pvs := database.WeekPvs()
+	year, week := database.CurrentWeek()
 
-	e, s := "", ""
+	picks := database.FormPicks(user, false)
+	pvs := database.WeekPvs(year, week)
+
+	var e, s string
 	if context.Get(r, "error") != nil {
 		e = context.Get(r, "error").(string)
 	}
@@ -41,17 +43,13 @@ func picksForm(w http.ResponseWriter, r *http.Request) {
 		Success string
 		URL     string
 		Picks   []database.FormPick
-		Threes  int
-		Fives   int
-		Sevens  int
+		database.Pvs
 	}{
 		e,
 		s,
 		r.URL.String(),
 		picks,
-		pvs.Three,
-		pvs.Five,
-		pvs.Seven,
+		pvs,
 	}
 
 	Fetch("picks.html").Execute(w, user, data)
@@ -115,7 +113,8 @@ func processPicks(w http.ResponseWriter, r *http.Request) {
 // point set. It allows users to "under-point" their picks to allow them to submit
 // games at their leisure.
 func validate(user string, updatedPicks []string, r *http.Request) (threes, fives, sevens bool) {
-	pvs := database.WeekPvs()
+	year, week := database.CurrentWeek()
+	pvs := database.WeekPvs(year, week)
 
 	one := 0
 	three := 0

@@ -1,18 +1,18 @@
 package database
 
+import "log"
+
 type Years struct {
-	Id   int64 `db:"id"`
-	Year int   `db:"year"`
+	Id   int64
+	Year int
 }
 
-func NewYear(year int) error {
-	y := Years{
-		Year: year,
+func yearId(year int) (id int64) {
+	row := db.QueryRow("SELECT id FROM years WHERE year = ?1", year)
+	err := row.Scan(&id)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	return db.Insert(&y)
-}
-
-func yearID(year int) (int64, error) {
-	return db.SelectInt("SELECT id FROM years WHERE year = ?1", year)
+	return id
 }

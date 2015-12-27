@@ -17,8 +17,7 @@ import (
 var (
 	store              *sessions.CookieStore
 	router             = mux.NewRouter()
-	emailNotifications bool
-	configPath         string
+	emailNotifications = false
 )
 
 type Config struct {
@@ -39,18 +38,23 @@ type EmailConfig struct {
 	SMTPFullAddress string `json:"smtpFullAddress"`
 }
 
-func init() {
-	flag.BoolVar(&emailNotifications, "email", false, "Send an e-mail notification for picks")
-	flag.StringVar(&configPath, "config", "/opt/ameske/gonfl/conf.json", "Path to server config file")
+func main() {
+	configFile := flag.String("config", "/opt/ameske/gonfl/conf.json", "Path to server config file")
+	debug := flag.Bool("debug", false, "run the server with debug configuration instead of a config file")
 	flag.Parse()
 
-	// App configuration
-	config := loadConfig(configPath)
-
-	database.SetDefaultDb(config.Server.DatabaseFile)
-
-	configureSessionStore(config)
-	configureEmail(config)
+	if !*debug {
+		config := loadConfig(*configFile)
+		configureEmail(config)
+		configureSessionStore(config)
+		database.SetDefaultDb(config.Server.DatabaseFile)
+	} else {
+		store = sessions.NewCookieStore([]byte("something secret"), []byte("something secret"))
+		err := database.SetDefaultDb("nfl.db")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	// HTTP Server configuration
 	router.HandleFunc("/", Index)
@@ -60,9 +64,7 @@ func init() {
 	router.Handle("/picks", Protect(Picks))
 	router.HandleFunc("/results/{year:[0-9]*}/{week:[0-9]*}", Results)
 	router.HandleFunc("/standings/{year:[0-9]*}/{week:[0-9]*}", Standings)
-}
 
-func main() {
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
 	log.Fatal(http.ListenAndServe("0.0.0.0:61389", router))
 }

@@ -3,43 +3,36 @@ package database
 import "log"
 
 type Pvs struct {
-	Id    int64  `db:"id"`
-	Type  string `db:"type"`
-	Seven int    `db:"seven"`
-	Five  int    `db:"five"`
-	Three int    `db:"three"`
-	One   int    `db:"one"`
+	Id    int64
+	Type  string
+	Seven int
+	Five  int
+	Three int
+	One   int
 }
 
-func NewPvs(one, three, five, seven int, typeID string) error {
-	pvs := Pvs{
-		One:   one,
-		Three: three,
-		Five:  five,
-		Seven: seven,
-		Type:  typeID,
-	}
-
-	return db.Insert(&pvs)
-}
-
-func WeekPvs() Pvs {
+func WeekPvs(year int, week int) Pvs {
 	var pvs Pvs
-	sql := `SELECT pvs.*
+	sql := `SELECT pvs.Type, pvs.Seven, pvs.Five, pvs.Three, pvs.One
 		FROM weeks
 		JOIN years ON years.id = weeks.year_id
 		JOIN pvs ON pvs.id = weeks.pvs_id
 		WHERE years.year = ?1 AND weeks.week = ?2`
 
-	year, week := CurrentWeek()
-	err := db.SelectOne(&pvs, sql, year, week)
-	if err != nil {
-		log.Fatalf("WeekPvs: %s", err.Error())
-	}
+	row := db.QueryRow(sql, year, week)
+	err := row.Scan(&pvs.Type, &pvs.Seven, &pvs.Five, &pvs.Three, &pvs.One)
 
+	if err != nil {
+		log.Fatal(err)
+	}
 	return pvs
 }
 
 func pvsID(typeID string) (int64, error) {
-	return db.SelectInt("SELECT id FROM pvs WHERE type = ?1", typeID)
+	var id int64
+
+	row := db.QueryRow("SELECT id FROM pvs WHERE type = ?1", typeID)
+	err := row.Scan(&id)
+
+	return id, err
 }

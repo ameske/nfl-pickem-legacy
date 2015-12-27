@@ -63,8 +63,7 @@ func Grade(args []string) {
 				total += p.Points
 			}
 
-			// TODO - This is really just so we can clean the database code out for now
-			err := database.UpdatePick(p)
+			err := database.UpdatePick(p.Id, p.Correct)
 			if err != nil {
 				log.Fatalf("Update: %s", err.Error())
 			}

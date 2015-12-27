@@ -38,17 +38,20 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	// Make sure the user REALLY knows their new password and it isn't empty
 	if pN != pNC || pN == "" {
-		Fetch("changePassowrd.html").Execute(w, u, m{Error: "Passwords do not match."})
+		Fetch("changePassword.html").Execute(w, u, m{Error: "Passwords do not match."})
 		return
 	}
 
 	// Perform the password update
 	bpass, err := bcrypt.GenerateFromPassword([]byte(pN), bcrypt.DefaultCost)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err)
 	}
 
-	database.UpdatePassword(u, bpass)
+	err = database.UpdatePassword(u, bpass)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	Fetch("changePassword.html").Execute(w, u, m{Success: "Password updated successfully."})
 }

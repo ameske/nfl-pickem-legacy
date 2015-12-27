@@ -1,19 +1,18 @@
 package database
 
 import (
-	"fmt"
 	"log"
 	"time"
 )
 
 // Picks is a struct mapping to the corresponding postgres table
 type Picks struct {
-	Id        int64 `db:"id"`
-	UserId    int64 `db:"user_id"`
-	GameId    int64 `db:"game_id"`
-	Selection int   `db:"selection"`
-	Points    int   `db:"points"`
-	Correct   bool  `db:"correct"`
+	Id        int64
+	UserId    int64
+	GameId    int64
+	Selection int
+	Points    int
+	Correct   bool
 }
 
 //FormPick contains the information required to populate a picks HTML Form
@@ -28,14 +27,14 @@ type FormPick struct {
 	HomeId    int64
 	Selection int
 	Points    int
-	Disabled  bool `db"-"`
+	Disabled  bool
 }
 
 // WeeklyPicks creates a []Picks representing a user's picks for the given week
-func WeeklyPicks(username string) (picks []*Picks) {
+func WeeklyPicks(username string) []*Picks {
 	year, week := CurrentWeek()
 
-	sql := `SELECT picks.*
+	sql := `SELECT picks.id, picks.game_id, picks.selection, picks.points, picks.correct
 		FROM picks
 		JOIN games ON games.id = picks.game_id
 		JOIN weeks ON weeks.id = games.week_id
@@ -44,16 +43,27 @@ func WeeklyPicks(username string) (picks []*Picks) {
 		WHERE years.year = ?1 AND weeks.week = ?2 AND users.email = ?3
 		ORDER BY games.date ASC`
 
-	_, err := db.Select(&picks, sql, year, week, username)
+	rows, err := db.Query(sql, year, week, username)
 	if err != nil {
-		log.Fatalf("GetWeeklyPicks: %s", err.Error())
+		log.Fatal(err)
 	}
 
-	return
+	picks := make([]*Picks, 0)
+	for rows.Next() {
+		tmp := &Picks{}
+		err := rows.Scan(&tmp.Id, &tmp.GameId, &tmp.Selection, &tmp.Points, &tmp.Correct)
+		if err != nil {
+			log.Fatal(err)
+		}
+		picks = append(picks, tmp)
+	}
+	rows.Close()
+
+	return picks
 }
 
-func WeeklyPicksYearWeek(username string, year, week int) (picks []*Picks) {
-	sql := `SELECT picks.*
+func WeeklyPicksYearWeek(username string, year, week int) []*Picks {
+	sql := `SELECT picks.id, picks.game_id, picks.selection, picks.points, picks.correct
 		FROM picks
 		JOIN games ON games.id = picks.game_id
 		JOIN weeks ON weeks.id = games.week_id
@@ -62,18 +72,29 @@ func WeeklyPicksYearWeek(username string, year, week int) (picks []*Picks) {
 		WHERE years.year = ?1 AND weeks.week = ?2 AND users.email = ?3
 		ORDER BY games.date ASC`
 
-	_, err := db.Select(&picks, sql, year, week, username)
+	rows, err := db.Query(sql, year, week, username)
 	if err != nil {
-		log.Fatalf("GetWeeklyPicks: %s", err.Error())
+		log.Fatal(err)
 	}
 
-	return
+	picks := make([]*Picks, 0)
+	for rows.Next() {
+		tmp := &Picks{}
+		err := rows.Scan(&tmp.Id, &tmp.GameId, &tmp.Selection, &tmp.Points, &tmp.Correct)
+		if err != nil {
+			log.Fatal(err)
+		}
+		picks = append(picks, tmp)
+	}
+	rows.Close()
+
+	return picks
 }
 
-func weeklySelectedPicks(username string) (picks []*Picks) {
+func weeklySelectedPicks(username string) []*Picks {
 	year, week := CurrentWeek()
 
-	sql := `SELECT picks.*
+	sql := `SELECT picks.id, picks.game_id, picks.selection, picks.points, picks.correct
 		FROM picks
 		JOIN games ON games.id = picks.game_id
 		JOIN weeks ON weeks.id = games.week_id
@@ -82,12 +103,23 @@ func weeklySelectedPicks(username string) (picks []*Picks) {
 		WHERE years.year = ?1 AND weeks.week = ?2 AND users.email = ?3 AND picks.selection <> 0
 		ORDER BY games.date ASC`
 
-	_, err := db.Select(&picks, sql, year, week, username)
+	rows, err := db.Query(sql, year, week, username)
 	if err != nil {
-		log.Fatalf("GetWeeklyPicks: %s", err.Error())
+		log.Fatal(err)
 	}
 
-	return
+	picks := make([]*Picks, 0)
+	for rows.Next() {
+		tmp := &Picks{}
+		err := rows.Scan(&tmp.Id, &tmp.GameId, &tmp.Selection, &tmp.Points, &tmp.Correct)
+		if err != nil {
+			log.Fatal(err)
+		}
+		picks = append(picks, tmp)
+	}
+	rows.Close()
+
+	return picks
 }
 
 // FormPicks gathers the neccessary information needed render a user's pick-em form
@@ -102,25 +134,14 @@ func FormPicks(username string, selectedOnly bool) []FormPick {
 	formGames := make([]FormPick, 0)
 	for _, p := range picks {
 		// Lookup the game information
-		var g Games
-		err := db.SelectOne(&g, "SELECT * FROM games WHERE id = ?1", p.GameId)
-		if err != nil {
-			log.Fatalf("GetWeeklyPicks: %s", err.Error())
-		}
+		awayId, homeId, date := gamePickInfo(p.GameId)
 
 		// Lookup the team information
-		var h, a Teams
-		err = db.SelectOne(&h, "SELECT * FROM teams WHERE id = ?1", g.HomeId)
-		if err != nil {
-			log.Fatalf("GetWeeklyPicks: %s", err.Error())
-		}
-		err = db.SelectOne(&a, "SELECT * FROM teams WHERE id = ?1", g.AwayId)
-		if err != nil {
-			log.Fatalf("GetWeeklyPicks: %s", err.Error())
-		}
+		h := teamById(homeId)
+		a := teamById(awayId)
 
 		// Convert to a go time for the form picks
-		gDate := time.Unix(g.Date, 0)
+		gDate := time.Unix(date, 0)
 
 		// 8/23/15: Since we now append time zone when loading schedule, we should be ok
 		//disabled := time.Now().After(gDate.Add(time.Hour * 5))
@@ -147,28 +168,13 @@ func FormPicks(username string, selectedOnly bool) []FormPick {
 }
 
 func MakePick(username string, pickID int64, selection int, points int) error {
-	var pick Picks
-	err := db.SelectOne(&pick, `SELECT picks.*
-				    FROM picks JOIN users ON users.id = picks.user_id
-				    WHERE users.email = ?1 AND picks.id = ?2`, username, pickID)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-
-	pick.Selection = int(selection)
-	pick.Points = int(points)
-
-	_, err = db.Update(&pick)
+	_, err := db.Exec("UPDATE picks SET selection = ?1, points = ?2 WHERE user_id = (SELECT id FROM users WHERE email = ?3) AND id = ?4", selection, points, username, pickID)
 
 	return err
 }
 
-func UpdatePick(p *Picks) error {
-	_, err := db.Update(p)
-	if err != nil {
-		log.Fatalf("Update: %s", err.Error())
-	}
-
+func UpdatePick(id int64, correct bool) error {
+	_, err := db.Exec("UPDATE picks SET correct = ?1 WHERE id = ?2", correct, id)
 	return err
 }
 
@@ -179,25 +185,30 @@ type PickSelection struct {
 }
 
 func CLIPickSelections(user string, year, week int) []PickSelection {
-	var userID int64
-	err := db.SelectOne(&userID, "SELECT id from users WHERE email = ?1", user)
-	if err != nil {
-		log.Fatalf("UserId: %s", err.Error())
-	}
-	fmt.Printf("%d\n", userID)
+	sql := `SELECT picks.id, picks.user_id, picks.game_id, picks.selection, picks.points, picks.correct, games.away_id, games.home_id
+		FROM picks
+		JOIN users ON picks.user_id = users.id
+		JOIN games ON picks.game_id = games.id
+		JOIN weeks ON games.week_id = weeks.id
+		JOIN years ON weeks.year_id = years.id
+		WHERE users.email = ?1 AND years.year = ?2 AND weeks.week = ?3`
 
-	var picks []PickSelection
-	weekID, err := weekID(week, year)
+	rows, err := db.Query(sql, user, year, week)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_, err = db.Select(&picks, `SELECT picks.*, games.away_id AS AwayId, games.home_id AS HomeId 
-				    FROM picks INNER JOIN games ON picks.game_id = games.id
-				    WHERE picks.user_id = ?1 AND games.week_id = ?2`, userID, weekID)
-	if err != nil {
-		log.Fatalf("PickSelection: %s", err.Error())
+	picks := make([]PickSelection, 0)
+	for rows.Next() {
+		tmp := PickSelection{}
+		err := rows.Scan(&tmp.Id, &tmp.UserId, &tmp.GameId, &tmp.Selection, &tmp.Points, &tmp.Correct, &tmp.AwayId, &tmp.HomeId)
+		if err != nil {
+			log.Fatal(err)
+		}
+		picks = append(picks, tmp)
 	}
+
+	rows.Close()
 
 	return picks
 }
@@ -207,13 +218,10 @@ func CreateSeasonPicks(year int) {
 	games := GamesBySeason(year)
 	for _, g := range games {
 		for _, u := range users {
-			tmp := &Picks{
-				UserId: u.Id,
-				GameId: g.Id,
-			}
-			err := db.Insert(tmp)
+			sql := "INSERT INTO picks(user_id, game_id) VALUES(?1, ?2)"
+			_, err := db.Exec(sql, u.Id, g.Id)
 			if err != nil {
-				log.Fatalf("Insert error: %s", err.Error())
+				log.Fatal(err)
 			}
 		}
 	}

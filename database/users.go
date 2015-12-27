@@ -8,31 +8,13 @@ import (
 )
 
 type Users struct {
-	Id        int64     `db:"id"`
-	FirstName string    `db:"first_name"`
-	LastName  string    `db:"last_name"`
-	Email     string    `db:"email"`
-	Admin     bool      `db:"admin"`
-	LastLogin time.Time `db:"last_login"`
-	Password  string    `db:"password"`
-}
-
-func NewUser(first, last, email, password string) error {
-	u := Users{
-		FirstName: first,
-		LastName:  last,
-		Email:     email,
-		Admin:     false,
-		LastLogin: time.Now(),
-	}
-
-	bpass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	u.Password = string(bpass)
-
-	return db.Insert(&u)
+	Id        int64
+	FirstName string
+	LastName  string
+	Email     string
+	Admin     bool
+	LastLogin time.Time
+	Password  string
 }
 
 func AddUser(u Users) error {
@@ -42,51 +24,60 @@ func AddUser(u Users) error {
 	}
 	u.Password = string(bpass)
 
-	return db.Insert(&u)
+	_, err = db.Exec("INSERT INTO users(first_name, last_name, email, admin, last_login, password) VALUES(?1, ?2 ?3, ?4, ?5, ?6)", u.FirstName, u.LastName, u.Email, u.Admin, u.LastLogin, u.Password)
+
+	return err
 }
 
 func AllUsers() []Users {
-	var users []Users
-	_, err := db.Select(&users, "SELECT * from users ORDER BY first_name ASC")
+	users := make([]Users, 0)
+	rows, err := db.Query("SELECT id, first_name, last_name, email, admin, last_login, password FROM users ORDER BY first_name ASC")
 	if err != nil {
-		log.Fatalf("AllUsers: %s", err.Error())
+		log.Fatal(err)
 	}
+
+	for rows.Next() {
+		tmp := Users{}
+		err := rows.Scan(&tmp.Id, &tmp.FirstName, &tmp.LastName, &tmp.Email, &tmp.Admin, &tmp.LastLogin, &tmp.Password)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	rows.Close()
 
 	return users
 }
 
 func UserId(username string) int64 {
 	var userId int64
-	err := db.SelectOne(&userId, "SELECT id FROM users WHERE email = ?1", username)
+
+	row := db.QueryRow("SELECT id FROM users WHERE email = ?1", username)
+	err := row.Scan(&userId)
+
 	if err != nil {
-		log.Fatalf("UserId: %s", err.Error())
+		log.Fatal(err)
 	}
 
 	return userId
 }
 
 func CheckCredentials(user string, password string) bool {
-	var u Users
+	var storedPassword string
+	row := db.QueryRow("SELECT password FROM users WHERE email = ?1", user)
+	err := row.Scan(&storedPassword)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	_ = db.SelectOne(&u, "SELECT * FROM users WHERE email = ?1", user)
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(password))
 
 	return err == nil
 }
 
-func UpdatePassword(user string, newPassword []byte) {
-	var u Users
-	err := db.SelectOne(&u, "SELECT * FROM users WHERE email = ?1", user)
-	if err != nil {
-		log.Fatalf("UpdatePassword: %s", err.Error())
-	}
-
-	u.Password = string(newPassword)
-
-	_, err = db.Update(&u)
-	if err != nil {
-		log.Fatalf("UpdatePassword: %s", err.Error())
-	}
+func UpdatePassword(user string, newPassword []byte) error {
+	_, err := db.Exec("UPDATE users SET password = ?1 WHERE email = ?2", string(newPassword), user)
+	return err
 }
 
 func UsersMap(users []Users) map[int64]Users {
