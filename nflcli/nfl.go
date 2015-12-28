@@ -24,6 +24,8 @@ func main() {
 		return
 	}
 
+	log.SetFlags(log.LstdFlags | log.Llongfile)
+
 	if *dbConnString == "" {
 		*dbConnString = DefaultDatabase
 	}

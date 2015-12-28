@@ -79,29 +79,29 @@ func ImportScores(args []string) {
 	cmd := exec.Command("weeklyScores", strconv.Itoa(year), strconv.Itoa(week))
 	pipe, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Fatalf("Pipe: %s", err.Error())
+		log.Fatal(err)
 	}
 
 	err = cmd.Start()
 	if err != nil {
-		log.Fatalf("Start: %s", err.Error())
+		log.Fatal(err)
 	}
 
 	var results []ResultsJson
 	err = json.NewDecoder(pipe).Decode(&results)
 	if err != nil {
-		log.Fatalf("Decode: %s", err.Error())
+		log.Fatal(err)
 	}
 
 	err = cmd.Wait()
 	if err != nil {
-		log.Fatalf("Wait: %s", err.Error())
+		log.Fatal(err)
 	}
 
 	for _, result := range results {
 		err := database.UpdateScores(result.Week, result.Year, result.Home, result.HomeScore, result.AwayScore)
 		if err != nil {
-			log.Fatalf("Update Scores: %v", err)
+			log.Fatal(err)
 		}
 	}
 }

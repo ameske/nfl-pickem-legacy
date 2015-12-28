@@ -65,7 +65,7 @@ func Grade(args []string) {
 
 			err := database.UpdatePick(p.Id, p.Correct)
 			if err != nil {
-				log.Fatalf("Update: %s", err.Error())
+				log.Fatal(err)
 			}
 		}
 		fmt.Printf("%s: %d\n", u.FirstName, total)

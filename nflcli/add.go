@@ -65,16 +65,16 @@ func AddUser(args []string) {
 	}
 
 	if first == "" {
-		log.Fatalf("First name is required. Use --first <firstname> to specify.")
+		log.Fatal("First name is required. Use --first <firstname> to specify.")
 	}
 	if last == "" {
-		log.Fatalf("Last name is required. Use --last <lastname> to specify.")
+		log.Fatal("Last name is required. Use --last <lastname> to specify.")
 	}
 	if email == "" {
-		log.Fatalf("Email is required. Use --email <address> to specify.")
+		log.Fatal("Email is required. Use --email <address> to specify.")
 	}
 	if password == "" {
-		log.Fatalf("Desired password required. Use --password <pass> to specify.")
+		log.Fatal("Desired password required. Use --password <pass> to specify.")
 	}
 
 	newUser := database.Users{
@@ -86,7 +86,7 @@ func AddUser(args []string) {
 
 	err = database.AddUser(newUser)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err)
 	}
 }
 
@@ -139,7 +139,7 @@ func AddPicks(args []string) {
 
 		err := database.MakePick(p.Id, selection, points)
 		if err != nil {
-			log.Fatalf("Updating Pick: %s", err.Error())
+			log.Fatal(err)
 		}
 	}
 
