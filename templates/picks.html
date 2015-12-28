@@ -21,19 +21,19 @@
         <td>{{.Home}} {{.HomeNick}}</td>
         <td>
             {{if .Disabled}}
-            {{if eq .Selection 1}} {{.Away}}</td> {{else}} {{.Home}}</td> {{end}}
+            {{if eq .Selection 1}} {{.Away}} {{.AwayNick}}</td> {{else}} {{.Home}} {{.HomeNick}}</td> {{end}}
             {{else}}
             <select class="form-control" name="{{.Id}}-Selection" id="{{.Id}}-Selection">
               {{if eq .Selection 1}}
-              <option value="1" selected="selected">{{.Away}}</option>
-              <option value="2">{{.Home}}</option>
+              <option value="1" selected="selected">{{.Away}} {{.AwayNick}}</option>
+              <option value="2">{{.Home}} {{.HomeNick}}</option>
               {{else if eq .Selection 2}}
-              <option value="1">{{.Away}}</option>
-              <option value="2" selected="selected">{{.Home}}</option>
+              <option value="1">{{.Away}} {{.AwayNick}}</option>
+              <option value="2" selected="selected">{{.Home}} {{.HomeNick}}</option>
               {{else}}
               <option value="0" selected="selected">--Winner--</option>
-              <option value="1">{{.Away}}</option>
-              <option value="2">{{.Home}}</option>
+              <option value="1">{{.Away}} {{.AwayNick}}</option>
+              <option value="2">{{.Home}} {{.HomeNick}}</option>
               {{end}}
             </select></td>
             {{end}}
