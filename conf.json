@@ -2,7 +2,8 @@
   "server" : {
     "authKey" : "",
     "encryptKey" : "",
-    "postgresConnString" : "host=/run/postgresql"
+    "postgresConnString" : "/opt/ameske/gonfl/nfl.db"
+    "templatesDirectory" : "/opt/ameske/gonfl/templates/"
   },
   "email" : {
     "sendAsAddress" : "",

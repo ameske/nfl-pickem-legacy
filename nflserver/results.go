@@ -10,11 +10,11 @@ import (
 
 func Results(w http.ResponseWriter, r *http.Request) {
 	year, week := yearWeek(r)
-	u := currentUser(r)
+	u, a := currentUser(r)
 
 	data := GenerateResultsData(year, week)
 
-	err := Fetch("results.html").Execute(w, u, data)
+	err := Fetch("results.html").Execute(w, u, a, data)
 	if err != nil {
 		log.Println(err)
 	}

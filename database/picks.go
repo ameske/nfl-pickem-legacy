@@ -167,8 +167,8 @@ func FormPicks(username string, selectedOnly bool) []FormPick {
 	return formGames
 }
 
-func MakePick(username string, pickID int64, selection int, points int) error {
-	_, err := db.Exec("UPDATE picks SET selection = ?1, points = ?2 WHERE user_id = (SELECT id FROM users WHERE email = ?3) AND id = ?4", selection, points, username, pickID)
+func MakePick(pickID int64, selection int, points int) error {
+	_, err := db.Exec("UPDATE picks SET selection = ?1, points = ?2 WHERE id = ?3", selection, points, pickID)
 
 	return err
 }

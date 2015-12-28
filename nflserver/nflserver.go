@@ -26,9 +26,10 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	AuthKey      string `json:"authKey"`
-	EncryptKey   string `json:"encryptKey"`
-	DatabaseFile string `json:"databaseFile"`
+	AuthKey            string `json:"authKey"`
+	EncryptKey         string `json:"encryptKey"`
+	DatabaseFile       string `json:"databaseFile"`
+	TemplatesDirectory string `json:"templatesDirectory"`
 }
 
 type EmailConfig struct {
@@ -48,20 +49,24 @@ func main() {
 		configureEmail(config)
 		configureSessionStore(config)
 		database.SetDefaultDb(config.Server.DatabaseFile)
+		templatesDir = config.Server.TemplatesDirectory
 	} else {
 		store = sessions.NewCookieStore([]byte("something secret"), []byte("something secret"))
 		err := database.SetDefaultDb("nfl.db")
 		if err != nil {
 			log.Fatal(err)
 		}
+		templatesDir = "/Users/ameske/Documents/go/src/github.com/ameske/nfl-pickem/templates/"
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
 	// HTTP Server configuration
 	router.HandleFunc("/", Index)
 	router.HandleFunc("/login", Login)
-	router.Handle("/logout", Protect(Logout))
-	router.Handle("/changePassword", Protect(ChangePassword))
-	router.Handle("/picks", Protect(Picks))
+	router.HandleFunc("/logout", Protect(Logout))
+	router.HandleFunc("/changePassword", Protect(ChangePassword))
+	router.HandleFunc("/picks", Protect(Picks))
+	router.HandleFunc("/admin/{year:[0-9]*}/{week:[0-9]*}", Protect(AdminOnly(AdminPickForm)))
 	router.HandleFunc("/results/{year:[0-9]*}/{week:[0-9]*}", Results)
 	router.HandleFunc("/standings/{year:[0-9]*}/{week:[0-9]*}", Standings)
 

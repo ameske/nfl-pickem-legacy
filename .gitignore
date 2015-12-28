@@ -27,3 +27,4 @@ webapp/nfl.yaml
 webapp/webapp
 nfl/nfl
 scripts/sql/*.bak
+nfl.db

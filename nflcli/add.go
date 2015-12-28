@@ -137,7 +137,7 @@ func AddPicks(args []string) {
 			valid = true
 		}
 
-		err := database.MakePick(user, p.Id, selection, points)
+		err := database.MakePick(p.Id, selection, points)
 		if err != nil {
 			log.Fatalf("Updating Pick: %s", err.Error())
 		}

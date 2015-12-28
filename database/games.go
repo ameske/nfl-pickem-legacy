@@ -25,8 +25,6 @@ func gamePickInfo(id int64) (awayId int64, homeId int64, time int64) {
 }
 
 func GamesBySeason(year int) []Games {
-	games := make([]Games, 0)
-
 	rows, err := db.Query(`SELECT games.id, games.week_id, games.date, games.home_id, games.away_id, games.home_score, games.away_score
 			       FROM games 
 			       JOIN weeks ON weeks.id = games.week_id
@@ -36,12 +34,14 @@ func GamesBySeason(year int) []Games {
 		log.Fatal(err)
 	}
 
+	games := make([]Games, 0)
 	for rows.Next() {
 		tmp := Games{}
 		err := rows.Scan(&tmp.Id, &tmp.WeekId, &tmp.Date, &tmp.HomeId, &tmp.AwayId, &tmp.HomeScore, &tmp.AwayScore)
 		if err != nil {
 			log.Fatal(err)
 		}
+		games = append(games, tmp)
 	}
 
 	rows.Close()
@@ -50,8 +50,6 @@ func GamesBySeason(year int) []Games {
 }
 
 func WeeklyGames(year, week int) []Games {
-	var games []Games
-
 	sql := `SELECT games.id, games.week_id, games.date, games.home_id, games.away_id, games.home_score, games.away_score
 		FROM games
 		JOIN weeks ON weeks.id = games.week_id
@@ -63,12 +61,14 @@ func WeeklyGames(year, week int) []Games {
 		log.Fatal(err)
 	}
 
+	var games []Games
 	for rows.Next() {
 		tmp := Games{}
 		err := rows.Scan(&tmp.Id, &tmp.WeekId, &tmp.Date, &tmp.HomeId, &tmp.AwayId, &tmp.HomeScore, &tmp.AwayScore)
 		if err != nil {
 			log.Fatal(err)
 		}
+		games = append(games, tmp)
 	}
 
 	rows.Close()

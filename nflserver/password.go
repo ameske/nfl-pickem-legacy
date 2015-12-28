@@ -18,13 +18,13 @@ type m struct {
 // ChangePassword processes the password change form, informing the user of any problems or success.
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		u := currentUser(r)
-		Fetch("changePassword.html").Execute(w, u, m{})
+		u, a := currentUser(r)
+		Fetch("changePassword.html").Execute(w, u, a, m{})
 		return
 	}
 
 	r.ParseForm()
-	u := currentUser(r)
+	u, a := currentUser(r)
 
 	p := r.FormValue("oldPassword")
 	pN := r.FormValue("newPassword")
@@ -32,13 +32,13 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	// Check that this user is actually who they claim they are
 	if !database.CheckCredentials(u, p) {
-		Fetch("changePassword.html").Execute(w, u, m{Error: "Invalid username or password"})
+		Fetch("changePassword.html").Execute(w, u, a, m{Error: "Invalid username or password"})
 		return
 	}
 
 	// Make sure the user REALLY knows their new password and it isn't empty
 	if pN != pNC || pN == "" {
-		Fetch("changePassword.html").Execute(w, u, m{Error: "Passwords do not match."})
+		Fetch("changePassword.html").Execute(w, u, a, m{Error: "Passwords do not match."})
 		return
 	}
 
@@ -53,5 +53,5 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	Fetch("changePassword.html").Execute(w, u, m{Success: "Password updated successfully."})
+	Fetch("changePassword.html").Execute(w, u, a, m{Success: "Password updated successfully."})
 }

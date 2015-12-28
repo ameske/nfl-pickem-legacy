@@ -9,7 +9,8 @@ import (
 var db *sql.DB
 
 func SetDefaultDb(conn string) error {
-	db, err := sql.Open("sqlite3", conn)
+	var err error
+	db, err = sql.Open("sqlite3", conn)
 	if err != nil {
 		return err
 	}

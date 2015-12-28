@@ -23,7 +23,7 @@ func Picks(w http.ResponseWriter, r *http.Request) {
 // Picks fetches this week's picks for the current logged in user and renders the
 // picks template with them.
 func picksForm(w http.ResponseWriter, r *http.Request) {
-	user := currentUser(r)
+	user, isAdmin := currentUser(r)
 
 	year, week := database.CurrentWeek()
 
@@ -52,12 +52,12 @@ func picksForm(w http.ResponseWriter, r *http.Request) {
 		pvs,
 	}
 
-	Fetch("picks.html").Execute(w, user, data)
+	Fetch("picks.html").Execute(w, user, isAdmin, data)
 }
 
 // ProcessPicks validates a user's picks, and then updates the current picks in the database
 func processPicks(w http.ResponseWriter, r *http.Request) {
-	user := currentUser(r)
+	user, _ := currentUser(r)
 
 	r.ParseForm()
 	pickedGames := r.Form["ids"]
@@ -89,9 +89,9 @@ func processPicks(w http.ResponseWriter, r *http.Request) {
 		}
 		points, _ := strconv.ParseInt(r.FormValue(fmt.Sprintf("%s-Points", p)), 10, 32)
 
-		err := database.MakePick(user, pickID, int(selection), int(points))
+		err := database.MakePick(pickID, int(selection), int(points))
 		if err != nil {
-			log.Fatalf("ProcessPicks: %s", err.Error())
+			log.Fatal(err)
 		}
 	}
 

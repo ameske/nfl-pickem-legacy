@@ -17,6 +17,16 @@ type Users struct {
 	Password  string
 }
 
+func IsAdmin(username string) (admin bool) {
+	row := db.QueryRow("SELECT admin FROM users WHERE email = ?1", username)
+	err := row.Scan(&admin)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return
+}
+
 func AddUser(u Users) error {
 	bpass, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -24,24 +34,25 @@ func AddUser(u Users) error {
 	}
 	u.Password = string(bpass)
 
-	_, err = db.Exec("INSERT INTO users(first_name, last_name, email, admin, last_login, password) VALUES(?1, ?2 ?3, ?4, ?5, ?6)", u.FirstName, u.LastName, u.Email, u.Admin, u.LastLogin, u.Password)
+	_, err = db.Exec("INSERT INTO users(first_name, last_name, email, admin, last_login, password) VALUES(?1, ?2, ?3, ?4, ?5, ?6)", u.FirstName, u.LastName, u.Email, u.Admin, u.LastLogin, u.Password)
 
 	return err
 }
 
 func AllUsers() []Users {
-	users := make([]Users, 0)
 	rows, err := db.Query("SELECT id, first_name, last_name, email, admin, last_login, password FROM users ORDER BY first_name ASC")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	users := make([]Users, 0)
 	for rows.Next() {
 		tmp := Users{}
 		err := rows.Scan(&tmp.Id, &tmp.FirstName, &tmp.LastName, &tmp.Email, &tmp.Admin, &tmp.LastLogin, &tmp.Password)
 		if err != nil {
 			log.Fatal(err)
 		}
+		users = append(users, tmp)
 	}
 
 	rows.Close()

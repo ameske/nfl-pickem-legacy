@@ -31,7 +31,7 @@ func configureEmail(config Config) {
 		config.Email.SMTPAddress,
 	)
 
-	email = template.Must(template.ParseFiles("/opt/ameske/gonfl/templates/email.tmpl"))
+	email = template.Must(template.ParseFiles(templatesDir + "email.tmpl"))
 
 	sendAddr = config.Email.SendAsAddress
 	smtpServer = config.Email.SMTPFullAddress

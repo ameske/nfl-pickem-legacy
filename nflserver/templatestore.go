@@ -13,8 +13,9 @@ This file is built up from https://github.com/zeebo/gostbook/blob/master/templat
 */
 
 var (
-	cache     = map[string]*template.Template{}
-	cacheLock sync.Mutex
+	cache        = map[string]*template.Template{}
+	cacheLock    sync.Mutex
+	templatesDir string
 )
 
 var funcs = template.FuncMap{
@@ -26,12 +27,19 @@ type GoNflTemplate struct {
 	t *template.Template
 }
 
-func (t *GoNflTemplate) Execute(w io.Writer, user string, content interface{}) error {
+func (t *GoNflTemplate) Execute(w io.Writer, user string, admin bool, content interface{}) error {
 	data := struct {
-		User    string
+		User struct {
+			Name  string
+			Admin bool
+		}
+
 		Content interface{}
 	}{
-		User:    user,
+		User: struct {
+			Name  string
+			Admin bool
+		}{user, admin},
 		Content: content,
 	}
 
@@ -49,7 +57,7 @@ func Fetch(name string) *GoNflTemplate {
 	}
 
 	t := template.New("_base.html").Funcs(funcs)
-	t = template.Must(t.ParseFiles("/opt/ameske/gonfl/templates/_base.html", "/opt/ameske/gonfl/templates/navbar.html", "/opt/ameske/gonfl/templates/"+name))
+	t = template.Must(t.ParseFiles(templatesDir+"_base.html", templatesDir+"navbar.html", templatesDir+name))
 	cache[name] = t
 
 	return &GoNflTemplate{t: t}

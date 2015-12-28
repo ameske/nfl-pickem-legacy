@@ -17,11 +17,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		n := context.Get(r, "next")
 		if n == nil {
-			Fetch("login.html").Execute(w, "", []string{"", "/login"})
+			Fetch("login.html").Execute(w, "", false, []string{"", "/login"})
 		} else {
 			next := n.(string)
 			next64 := base64.StdEncoding.EncodeToString([]byte(next))
-			Fetch("login.html").Execute(w, "", []string{"", fmt.Sprintf("/login?next=%s", string(next64))})
+			Fetch("login.html").Execute(w, "", false, []string{"", fmt.Sprintf("/login?next=%s", string(next64))})
 		}
 		return
 	}
@@ -34,9 +34,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	p := r.FormValue("password")
 	if !database.CheckCredentials(u, p) {
 		if next == "" {
-			Fetch("login.html").Execute(w, "", []string{"Invalid username or password.", "/login"})
+			Fetch("login.html").Execute(w, "", false, []string{"Invalid username or password.", "/login"})
 		} else {
-			Fetch("login.html").Execute(w, "", []string{"Invalid username of password.", fmt.Sprintf("/login?next=%s", next)})
+			Fetch("login.html").Execute(w, "", false, []string{"Invalid username of password.", fmt.Sprintf("/login?next=%s", next)})
 		}
 		return
 	}
@@ -45,6 +45,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "LoginState")
 	session.Values["status"] = "loggedin"
 	session.Values["user"] = u
+	session.Values["admin"] = database.IsAdmin(u)
 	session.Save(r, w)
 
 	// Redirect appropriately
@@ -64,6 +65,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "LoginState")
 	delete(session.Values, "status")
 	delete(session.Values, "user")
+	delete(session.Values, "admin")
 	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

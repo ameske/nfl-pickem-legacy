@@ -59,12 +59,19 @@
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            {{if eq "" .}}
+            {{if eq "" .Name}}
             <li><a href="/login">Login</a></li>
             {{else}}
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown">{{.Name}}<span class="caret"></span></a> 
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="/changePassword">Change Password</a></li>
+                {{if .Admin}}
+                <li><a href="/admin">Admin</a></li>
+                {{end}}
+              </ul>
+            </li>
             <li><a href="/picks">Picks</a></li>
-            <li><a href="/changePassword">Change Password</a></li>
-            <li><a href="/picks">{{.}}</a></li>
             <li><a href="/logout">Logout</a></li>
             {{end}}
           </ul>
