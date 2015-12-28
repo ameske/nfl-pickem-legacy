@@ -6,6 +6,8 @@ import (
 	"log"
 	"sync"
 	"time"
+
+	"github.com/ameske/nfl-pickem/database"
 )
 
 /*
@@ -28,18 +30,27 @@ type GoNflTemplate struct {
 }
 
 func (t *GoNflTemplate) Execute(w io.Writer, user string, admin bool, content interface{}) error {
+	_, week := database.CurrentWeek()
+
+	weeks := make([]int, 0)
+	for i := 0; i < week; i++ {
+		weeks = append(weeks, i+1)
+	}
+
 	data := struct {
-		User struct {
+		Navbar struct {
 			Name  string
 			Admin bool
+			Weeks []int
 		}
 
 		Content interface{}
 	}{
-		User: struct {
+		Navbar: struct {
 			Name  string
 			Admin bool
-		}{user, admin},
+			Weeks []int
+		}{user, admin, weeks},
 		Content: content,
 	}
 
