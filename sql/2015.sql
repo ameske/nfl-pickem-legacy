@@ -1,4 +1,4 @@
-INSERT INTO years (year) VALUES (2015);
+INSERT INTO years (year, year_start) VALUES (2015, 1441857600);
 INSERT INTO weeks (year_id, pvs_id, week) VALUES ((SELECT id FROM years WHERE year = 2015), (SELECT id FROM pvs WHERE type = 'A'), 1);
 INSERT INTO weeks (year_id, pvs_id, week) VALUES ((SELECT id FROM years WHERE year = 2015), (SELECT id FROM pvs WHERE type = 'A'), 2);
 INSERT INTO weeks (year_id, pvs_id, week) VALUES ((SELECT id FROM years WHERE year = 2015), (SELECT id FROM pvs WHERE type = 'A'), 3); 

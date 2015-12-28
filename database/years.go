@@ -1,6 +1,9 @@
 package database
 
-import "log"
+import (
+	"log"
+	"time"
+)
 
 type Years struct {
 	Id   int64
@@ -15,4 +18,15 @@ func yearId(year int) (id int64) {
 	}
 
 	return id
+}
+
+func YearStart(year int) time.Time {
+	var start int64
+	row := db.QueryRow("SELECT year_start FROM years WHERE year = ?1", year)
+	err := row.Scan(&start)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return time.Unix(start, 0)
 }
