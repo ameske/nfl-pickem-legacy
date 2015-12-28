@@ -108,35 +108,35 @@ func configureSessionStore(config Config) {
 func scheduleUpdates() {
 	// Friday at 8:00
 	go func() {
-		nextFriday := nextDay(time.Friday).Add(time.Hour * 8)
+		nextFriday := adjustIfPast(nextDay(time.Friday).Add(time.Hour * 8))
 		time.Sleep(nextFriday.Sub(time.Now()))
 		update()
 	}()
 
 	// Sunday at 18:00
 	go func() {
-		nextSunday := nextDay(time.Sunday).Add(time.Hour * 18)
+		nextSunday := adjustIfPast(nextDay(time.Sunday).Add(time.Hour * 18))
 		time.Sleep(nextSunday.Sub(time.Now()))
 		update()
 	}()
 
 	// Sunday at 21:00
 	go func() {
-		nextSunday := nextDay(time.Sunday).Add(time.Hour * 21)
+		nextSunday := adjustIfPast(nextDay(time.Sunday).Add(time.Hour * 21))
 		time.Sleep(nextSunday.Sub(time.Now()))
 		update()
 	}()
 
 	// Monday at 8:00
 	go func() {
-		nextMonday := nextDay(time.Monday).Add(time.Hour * 8)
+		nextMonday := adjustIfPast(nextDay(time.Monday).Add(time.Hour * 8))
 		time.Sleep(nextMonday.Sub(time.Now()))
 		update()
 	}()
 
 	// Tuesday at 8:00
 	go func() {
-		nextTuesday := nextDay(time.Tuesday)
+		nextTuesday := adjustIfPast(nextDay(time.Tuesday).Add(time.Hour * 8))
 		time.Sleep(nextTuesday.Sub(time.Now()))
 		update()
 	}()
@@ -149,6 +149,20 @@ func update() {
 		time.Sleep(time.Hour * 24 * 7)
 	}
 }
+
+func adjustIfPast(next time.Time) time.Time {
+	now := time.Now()
+	ty, tm, td := now.Date()
+	ny, nm, nd := next.Date()
+
+	// if the next day is today, but the hour we want has past then we must advance next a week
+	if (ty == ny && tm == nm && td == nd) && now.Hour() > next.Hour() {
+		next = next.AddDate(0, 0, 7)
+	}
+
+	return next
+}
+
 func nextDay(day time.Weekday) time.Time {
 	now := time.Now()
 
