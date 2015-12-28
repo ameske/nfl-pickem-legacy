@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ameske/nfl-pickem/database"
 	"github.com/gorilla/mux"
@@ -60,7 +61,8 @@ func main() {
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
-	// HTTP Server configuration
+	scheduleUpdates()
+
 	router.HandleFunc("/", Index)
 	router.HandleFunc("/login", Login)
 	router.HandleFunc("/logout", Protect(Logout))
@@ -81,7 +83,7 @@ func loadConfig(path string) Config {
 	err = json.Unmarshal(configBytes, &config)
 
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err)
 	}
 
 	return config
@@ -99,4 +101,62 @@ func configureSessionStore(config Config) {
 	}
 
 	store = sessions.NewCookieStore(decodedAuth, decodedEncrypt)
+}
+
+// scheduleUpdates sets up goroutines that will import the results of games and update the
+// picks after every wave of games completes.
+func scheduleUpdates() {
+	// Friday at 8:00
+	go func() {
+		nextFriday := nextDay(time.Friday).Add(time.Hour * 8)
+		time.Sleep(nextFriday.Sub(time.Now()))
+		update()
+	}()
+
+	// Sunday at 18:00
+	go func() {
+		nextSunday := nextDay(time.Sunday).Add(time.Hour * 18)
+		time.Sleep(nextSunday.Sub(time.Now()))
+		update()
+	}()
+
+	// Sunday at 21:00
+	go func() {
+		nextSunday := nextDay(time.Sunday).Add(time.Hour * 21)
+		time.Sleep(nextSunday.Sub(time.Now()))
+		update()
+	}()
+
+	// Monday at 8:00
+	go func() {
+		nextMonday := nextDay(time.Monday).Add(time.Hour * 8)
+		time.Sleep(nextMonday.Sub(time.Now()))
+		update()
+	}()
+
+	// Tuesday at 8:00
+	go func() {
+		nextTuesday := nextDay(time.Tuesday)
+		time.Sleep(nextTuesday.Sub(time.Now()))
+		update()
+	}()
+}
+
+func update() {
+	for {
+		UpdateGameScores()
+		Grade()
+		time.Sleep(time.Hour * 24 * 7)
+	}
+}
+func nextDay(day time.Weekday) time.Time {
+	now := time.Now()
+
+	// We only want to go forwards, so use modular arith to force going ahead
+	diff := int(day-now.Weekday()+7) % 7
+
+	next := now.AddDate(0, 0, diff)
+	next = time.Date(next.Year(), next.Month(), next.Day(), 0, 0, 0, 0, next.Location())
+
+	return next
 }
