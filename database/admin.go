@@ -90,7 +90,7 @@ func AdminForm(year, week int) ([]string, []AdminPickRow) {
 	       JOIN weeks ON weeks.id = games.week_id
 	       JOIN years ON years.id = weeks.year_id
 	       WHERE years.year = ?1 AND weeks.week = ?2 AND teams.abbreviation = ?3
-	       ORDER BY games.date ASC, games.id ASC, users.first_name ASC`
+	       ORDER BY games.date ASC, games.id ASC, users.id ASC`
 
 	formRows := make([]AdminPickRow, 0, len(home))
 
@@ -126,7 +126,7 @@ func AdminForm(year, week int) ([]string, []AdminPickRow) {
 }
 
 func usernames() []string {
-	rows, err := db.Query("SELECT first_name FROM users ORDER BY first_name ASC")
+	rows, err := db.Query("SELECT first_name FROM users ORDER BY id ASC")
 	if err != nil {
 		log.Fatal(err)
 	}

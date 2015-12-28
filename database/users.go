@@ -40,7 +40,7 @@ func AddUser(u Users) error {
 }
 
 func AllUsers() []Users {
-	rows, err := db.Query("SELECT id, first_name, last_name, email, admin, last_login, password FROM users ORDER BY first_name ASC")
+	rows, err := db.Query("SELECT id, first_name, last_name, email, admin, last_login, password FROM users ORDER BY id ASC")
 	if err != nil {
 		log.Fatal(err)
 	}

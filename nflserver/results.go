@@ -106,8 +106,6 @@ func GenerateResultsData(year int, week int) ResultsTemplateData {
 	data.Year = year
 	data.Week = week
 
-	log.Println(data)
-
 	return data
 }
 
