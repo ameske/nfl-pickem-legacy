@@ -30,10 +30,10 @@ def is_away_team(css_class):
 def is_home_team(css_class):
   return css_class == "team-name home lost" or css_class == "team-name home "
 
-def scrape(year, url, endweek):
+def scrape(year, url, start, endweek):
     games = []
 
-    for week_no in range(1, endweek):
+    for week_no in range(int(start), endweek):
         
         # OPEN UP THE HTML FOR EACH WEEK
         page = urllib2.urlopen(url + str(week_no))
@@ -48,6 +48,18 @@ def scrape(year, url, endweek):
         #  MERGE times and dates AND THEN BRING BACK INTO A DATETIME LIST
         dates_times = zip(dates, times)
         dates       = [ dt[0] + " 2015 " + dt[1] + " PM EST" for dt in dates_times]
+
+        # HANDLE THE CASE WHERE THE NFL PUTS A 'Next Game' ROW IN THE HTML
+        shift = False
+        for i in range(0, len(dates)):
+            if 'Next Game' in dates[i]:
+                shift = True
+                break
+        if shift:
+            away_teams = away_teams[1:]
+            home_teams = home_teams[1:]
+            dates = dates[1:]
+
         datetimes = [ datetime.datetime.strptime(date_string, '%A %B %d %Y %I:%M %p %Z') for date_string in dates ]
         
         # CREATE MATCHUP TUPLES AND CONVERT THEM INTO A DICTIONARY FOR JSON
@@ -66,9 +78,10 @@ def scrape(year, url, endweek):
 
 def main():
     year = sys.argv[1]
-    endweek = int(sys.argv[2]) + 1
+    start = sys.argv[2]
+    endweek = int(sys.argv[3]) + 1
     schedule = schedule_url_template.format(year)
-    schedule = scrape(year, schedule, endweek)
+    schedule = scrape(year, schedule, start, endweek)
     print json.dumps(schedule)
     
 if __name__=='__main__':
