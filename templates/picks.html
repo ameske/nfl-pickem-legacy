@@ -17,8 +17,8 @@
       {{if not .Disabled}}<input type="hidden" name="ids" value="{{.Id}}">{{end}}
       {{if .Disabled}}<tr class="active">{{else}}<tr>{{end}}
         <td>{{gametime .Time}}</td>
-        <td>{{.Away}} {{.AwayNick}}</td>
-        <td>{{.Home}} {{.HomeNick}}</td>
+        <td>{{.Away}} {{.AwayNick}} {{.AwayRecord}}</td>
+        <td>{{.Home}} {{.HomeNick}} {{.HomeRecord}}</td>
         <td>
             {{if .Disabled}}
             {{if eq .Selection 1}} {{.Away}} {{.AwayNick}}</td> {{else}} {{.Home}} {{.HomeNick}}</td> {{end}}

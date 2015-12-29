@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"log"
 	"time"
 )
@@ -17,17 +18,19 @@ type Picks struct {
 
 //FormPick contains the information required to populate a picks HTML Form
 type FormPick struct {
-	Id        int64
-	Time      time.Time
-	Away      string
-	AwayNick  string
-	AwayId    int64
-	Home      string
-	HomeNick  string
-	HomeId    int64
-	Selection int
-	Points    int
-	Disabled  bool
+	Id         int64
+	Time       time.Time
+	Away       string
+	AwayNick   string
+	AwayId     int64
+	AwayRecord string
+	Home       string
+	HomeNick   string
+	HomeId     int64
+	HomeRecord string
+	Selection  int
+	Points     int
+	Disabled   bool
 }
 
 // WeeklyPicks creates a []Picks representing a user's picks for the given week
@@ -131,6 +134,8 @@ func FormPicks(username string, selectedOnly bool) []FormPick {
 		picks = WeeklyPicks(username)
 	}
 
+	recordMap := TeamRecordMap()
+
 	formGames := make([]FormPick, 0)
 	for _, p := range picks {
 		// Lookup the game information
@@ -149,17 +154,19 @@ func FormPicks(username string, selectedOnly bool) []FormPick {
 
 		// Construct the FormPick
 		f := FormPick{
-			Id:        p.Id,
-			Time:      gDate,
-			Away:      a.City,
-			AwayNick:  a.Nickname,
-			AwayId:    a.Id,
-			Home:      h.City,
-			HomeNick:  h.Nickname,
-			HomeId:    h.Id,
-			Selection: p.Selection,
-			Points:    p.Points,
-			Disabled:  disabled,
+			Id:         p.Id,
+			Time:       gDate,
+			Away:       a.City,
+			AwayNick:   a.Nickname,
+			AwayId:     a.Id,
+			AwayRecord: fmt.Sprintf("(%d-%d)", recordMap[a.Id].Wins, recordMap[a.Id].Losses),
+			Home:       h.City,
+			HomeNick:   h.Nickname,
+			HomeRecord: fmt.Sprintf("(%d-%d)", recordMap[h.Id].Wins, recordMap[h.Id].Losses),
+			HomeId:     h.Id,
+			Selection:  p.Selection,
+			Points:     p.Points,
+			Disabled:   disabled,
 		}
 		formGames = append(formGames, f)
 	}

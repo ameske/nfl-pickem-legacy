@@ -73,3 +73,81 @@ func TeamMap() map[int64]string {
 
 	return teamMap
 }
+
+type Record struct {
+	Wins   int
+	Losses int
+}
+
+func TeamRecordMap() map[int64]*Record {
+	homeWinsSQL := "SELECT home_id, COUNT(*) FROM games WHERE (home_score > away_score) GROUP BY home_id"
+	awayWinsSQL := "SELECT away_id, COUNT(*) FROM games WHERE (away_score > home_score) GROUP BY away_id"
+	homeLossesSQL := "SELECT home_id, COUNT(*) FROM games WHERE (home_score < away_score) GROUP BY home_id"
+	awayLossesSQL := "SELECT away_id, COUNT(*) FROM games WHERE (away_score < home_score) GROUP BY away_id"
+
+	records := make(map[int64]*Record)
+
+	rows, err := db.Query(homeWinsSQL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for rows.Next() {
+		var id int64
+		var wins int
+		err := rows.Scan(&id, &wins)
+		if err != nil {
+			log.Fatal(err)
+		}
+		records[id] = &Record{
+			Wins: wins,
+		}
+	}
+	rows.Close()
+
+	rows, err = db.Query(awayWinsSQL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for rows.Next() {
+		var id int64
+		var wins int
+		err := rows.Scan(&id, &wins)
+		if err != nil {
+			log.Fatal(err)
+		}
+		records[id].Wins += wins
+	}
+	rows.Close()
+
+	rows, err = db.Query(homeLossesSQL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for rows.Next() {
+		var id int64
+		var losses int
+		err := rows.Scan(&id, &losses)
+		if err != nil {
+			log.Fatal(err)
+		}
+		records[id].Losses += losses
+	}
+	rows.Close()
+
+	rows, err = db.Query(awayLossesSQL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for rows.Next() {
+		var id int64
+		var losses int
+		err := rows.Scan(&id, &losses)
+		if err != nil {
+			log.Fatal(err)
+		}
+		records[id].Losses += losses
+	}
+	rows.Close()
+
+	return records
+}
