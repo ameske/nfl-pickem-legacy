@@ -79,74 +79,31 @@ type Record struct {
 	Losses int
 }
 
-func TeamRecordMap() map[int64]*Record {
-	homeWinsSQL := "SELECT home_id, COUNT(*) FROM games WHERE (home_score > away_score) GROUP BY home_id"
-	awayWinsSQL := "SELECT away_id, COUNT(*) FROM games WHERE (away_score > home_score) GROUP BY away_id"
-	homeLossesSQL := "SELECT home_id, COUNT(*) FROM games WHERE (home_score < away_score) GROUP BY home_id"
-	awayLossesSQL := "SELECT away_id, COUNT(*) FROM games WHERE (away_score < home_score) GROUP BY away_id"
+func TeamRecordMap() map[int64]Record {
+	sql := `SELECT tmp.id, home_wins+away_wins AS wins, home_losses+away_losses AS losses
+	  FROM (SELECT home_id AS id, COUNT(*) AS home_wins FROM games WHERE (home_score > away_score) GROUP BY home_id) tmp
+	  JOIN (SELECT away_id AS id, COUNT(*) AS away_wins FROM games WHERE (away_score > home_score) GROUP BY away_id) tmp2 ON tmp.id = tmp2.id
+	  JOIN (SELECT home_id AS id, COUNT(*) AS home_losses FROM games WHERE (home_score < away_score) GROUP BY home_id) tmp3 ON tmp2.id = tmp3.id
+	  JOIN (SELECT away_id AS id, COUNT(*) AS away_losses FROM games WHERE (away_score < home_score) GROUP BY away_id) tmp4 ON tmp3.id = tmp4.id;`
 
-	records := make(map[int64]*Record)
-
-	rows, err := db.Query(homeWinsSQL)
+	rows, err := db.Query(sql)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for rows.Next() {
-		var id int64
-		var wins int
-		err := rows.Scan(&id, &wins)
-		if err != nil {
-			log.Fatal(err)
-		}
-		records[id] = &Record{
-			Wins: wins,
-		}
-	}
-	rows.Close()
 
-	rows, err = db.Query(awayWinsSQL)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for rows.Next() {
-		var id int64
-		var wins int
-		err := rows.Scan(&id, &wins)
-		if err != nil {
-			log.Fatal(err)
-		}
-		records[id].Wins += wins
-	}
-	rows.Close()
+	records := make(map[int64]Record)
 
-	rows, err = db.Query(homeLossesSQL)
-	if err != nil {
-		log.Fatal(err)
-	}
 	for rows.Next() {
 		var id int64
-		var losses int
-		err := rows.Scan(&id, &losses)
+		var wins, losses int
+		err := rows.Scan(&id, &wins, &losses)
 		if err != nil {
 			log.Fatal(err)
 		}
-		records[id].Losses += losses
-	}
-	rows.Close()
 
-	rows, err = db.Query(awayLossesSQL)
-	if err != nil {
-		log.Fatal(err)
+		records[id] = Record{Wins: wins, Losses: losses}
 	}
-	for rows.Next() {
-		var id int64
-		var losses int
-		err := rows.Scan(&id, &losses)
-		if err != nil {
-			log.Fatal(err)
-		}
-		records[id].Losses += losses
-	}
+
 	rows.Close()
 
 	return records
