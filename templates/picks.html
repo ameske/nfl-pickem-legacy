@@ -9,7 +9,9 @@
       <tr>
         <th>Game Time</th>
         <th>Away</th>
+        <th></th>
         <th>Home</th>
+        <th></th>
         <th>Selection</th>
         <th>Points</th>
       </tr>
@@ -18,7 +20,9 @@
       {{if .Disabled}}<tr class="active">{{else}}<tr>{{end}}
         <td>{{gametime .Time}}</td>
         <td>{{.Away}} {{.AwayNick}} {{.AwayRecord}}</td>
+        <td><img src="/logo/{{.AwayAbbreviation}}" class="img-responsive"></td>
         <td>{{.Home}} {{.HomeNick}} {{.HomeRecord}}</td>
+        <td><img src="/logo/{{.HomeAbbreviation}}" class="img-responsive"></td>
         <td>
             {{if .Disabled}}
             {{if eq .Selection 1}} {{.Away}} {{.AwayNick}}</td> {{else}} {{.Home}} {{.HomeNick}}</td> {{end}}
