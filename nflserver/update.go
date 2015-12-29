@@ -20,9 +20,7 @@ type ResultsJson struct {
 
 // ImportScores scrapes the NFL's website using a helper script and inserts those
 // scores into the database.
-func UpdateGameScores() {
-	year, week := database.CurrentWeek()
-
+func UpdateGameScores(year, week int) {
 	cmd := exec.Command("weeklyScores", strconv.Itoa(year), strconv.Itoa(week))
 	pipe, err := cmd.StdoutPipe()
 	if err != nil {
@@ -56,9 +54,7 @@ func UpdateGameScores() {
 // Grade calculates the scores for each user in the database for the given week.
 // It assumes that the scores for the graded week have already been imported, else
 // results are undefined.
-func Grade() {
-	year, week := database.CurrentWeek()
-
+func Grade(year, week int) {
 	// Gather this week's games
 	gamesSlice := database.WeeklyGames(year, week)
 	gamesMap := database.GamesMap(gamesSlice)

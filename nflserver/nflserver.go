@@ -110,42 +110,46 @@ func scheduleUpdates() {
 	go func() {
 		nextFriday := adjustIfPast(nextDay(time.Friday).Add(time.Hour * 8))
 		time.Sleep(nextFriday.Sub(time.Now()))
-		update()
+		update(false)
 	}()
 
 	// Sunday at 18:00
 	go func() {
 		nextSunday := adjustIfPast(nextDay(time.Sunday).Add(time.Hour * 18))
 		time.Sleep(nextSunday.Sub(time.Now()))
-		update()
+		update(false)
 	}()
 
 	// Sunday at 21:00
 	go func() {
 		nextSunday := adjustIfPast(nextDay(time.Sunday).Add(time.Hour * 21))
 		time.Sleep(nextSunday.Sub(time.Now()))
-		update()
+		update(false)
 	}()
 
 	// Monday at 8:00
 	go func() {
 		nextMonday := adjustIfPast(nextDay(time.Monday).Add(time.Hour * 8))
 		time.Sleep(nextMonday.Sub(time.Now()))
-		update()
+		update(false)
 	}()
 
-	// Tuesday at 8:00
+	// Tuesday at 8:00. Here we need to update the current week - 1
 	go func() {
 		nextTuesday := adjustIfPast(nextDay(time.Tuesday).Add(time.Hour * 8))
 		time.Sleep(nextTuesday.Sub(time.Now()))
-		update()
+		update(true)
 	}()
 }
 
-func update() {
+func update(updatePreviousWeek bool) {
 	for {
-		UpdateGameScores()
-		Grade()
+		year, week := database.CurrentWeek()
+		if updatePreviousWeek {
+			week -= 1
+		}
+		UpdateGameScores(year, week)
+		Grade(year, week)
 		time.Sleep(time.Hour * 24 * 7)
 	}
 }
