@@ -31,6 +31,7 @@ type ServerConfig struct {
 	EncryptKey         string `json:"encryptKey"`
 	DatabaseFile       string `json:"databaseFile"`
 	TemplatesDirectory string `json:"templatesDirectory"`
+	LogosDirectory     string `json:"logosDirectory"`
 }
 
 type EmailConfig struct {
@@ -51,6 +52,7 @@ func main() {
 		configureSessionStore(config)
 		database.SetDefaultDb(config.Server.DatabaseFile)
 		templatesDir = config.Server.TemplatesDirectory
+		logosDir = config.Server.LogosDirectory
 	} else {
 		store = sessions.NewCookieStore([]byte("something secret"), []byte("something secret"))
 		err := database.SetDefaultDb("nfl.db")
@@ -58,10 +60,14 @@ func main() {
 			log.Fatal(err)
 		}
 		templatesDir = "/Users/ameske/Documents/go/src/github.com/ameske/nfl-pickem/templates/"
+		logosDir = "/Users/ameske/Documents/go/src/github.com/ameske/nfl-pickem/logos"
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
 	scheduleUpdates()
+
+	// TODO - Get this served by something static?
+	router.HandleFunc("/logo/{team:.*}", Logo)
 
 	router.HandleFunc("/", Index)
 	router.HandleFunc("/login", Login)
