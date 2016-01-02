@@ -47,6 +47,8 @@ func main() {
 	debug := flag.Bool("debug", false, "run the server with debug configuration instead of a config file")
 	flag.Parse()
 
+	log.SetFlags(log.LstdFlags | log.Llongfile)
+
 	if !*debug {
 		config := loadConfig(*configFile)
 		templatesDir = config.Server.TemplatesDirectory
@@ -65,7 +67,6 @@ func main() {
 		}
 		templatesDir = "/Users/ameske/Documents/go/src/github.com/ameske/nfl-pickem/templates/"
 		logosDir = "/Users/ameske/Documents/go/src/github.com/ameske/nfl-pickem/logos"
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
 	scheduleUpdates()
