@@ -32,6 +32,7 @@ type ServerConfig struct {
 	DatabaseFile       string `json:"databaseFile"`
 	TemplatesDirectory string `json:"templatesDirectory"`
 	LogosDirectory     string `json:"logosDirectory"`
+	SendEmail          bool   `json:"sendEmail"`
 }
 
 type EmailConfig struct {
@@ -48,11 +49,14 @@ func main() {
 
 	if !*debug {
 		config := loadConfig(*configFile)
-		configureEmail(config)
-		configureSessionStore(config)
-		database.SetDefaultDb(config.Server.DatabaseFile)
 		templatesDir = config.Server.TemplatesDirectory
 		logosDir = config.Server.LogosDirectory
+		database.SetDefaultDb(config.Server.DatabaseFile)
+		if config.Server.SendEmail {
+			emailNotifications = true
+			configureEmail(config)
+		}
+		configureSessionStore(config)
 	} else {
 		store = sessions.NewCookieStore([]byte("something secret"), []byte("something secret"))
 		err := database.SetDefaultDb("nfl.db")
