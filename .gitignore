@@ -22,9 +22,6 @@ _testmain.go
 *.exe
 *.test
 
-go_nfl
-webapp/nfl.yaml
-webapp/webapp
-nfl/nfl
-scripts/sql/*.bak
-nfl.db
+nfl-pickem
+*.db
+results.json

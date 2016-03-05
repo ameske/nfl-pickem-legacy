@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"sync"
 	"time"
 
 	"github.com/ameske/nfl-pickem/database"
@@ -13,12 +12,6 @@ import (
 /*
 This file is built up from https://github.com/zeebo/gostbook/blob/master/template.go
 */
-
-var (
-	cache        = map[string]*template.Template{}
-	cacheLock    sync.Mutex
-	templatesDir string
-)
 
 var funcs = template.FuncMap{
 	"reverse":  reverse,
@@ -30,46 +23,49 @@ type GoNflTemplate struct {
 }
 
 func (t *GoNflTemplate) Execute(w io.Writer, user string, admin bool, content interface{}) error {
-	_, week := database.CurrentWeek()
+	inSeason := true
 
-	weeks := make([]int, 0)
-	for i := 0; i < week; i++ {
-		weeks = append(weeks, i+1)
+	year, week, err := database.CurrentWeek(time.Now())
+	if err == database.ErrOffseason {
+		inSeason = false
+		week = 17
+	} else if err != nil {
+		log.Fatal(err)
+	}
+
+	weeks := make([]int, 0, week)
+	for i := 1; i <= week; i++ {
+		weeks = append(weeks, i)
 	}
 
 	data := struct {
 		Navbar struct {
-			Name  string
-			Admin bool
-			Weeks []int
+			Name     string
+			Admin    bool
+			Weeks    []int
+			Year     int
+			InSeason bool
 		}
 
 		Content interface{}
 	}{
 		Navbar: struct {
-			Name  string
-			Admin bool
-			Weeks []int
-		}{user, admin, weeks},
+			Name     string
+			Admin    bool
+			Weeks    []int
+			Year     int
+			InSeason bool
+		}{user, admin, weeks, year, inSeason},
 		Content: content,
 	}
 
 	return t.t.Execute(w, data)
 }
 
-// Fetch returns the specified template, creating it and adding it to the
-// map of cached templates if it has not yet been created
-func Fetch(name string) *GoNflTemplate {
-	cacheLock.Lock()
-	defer cacheLock.Unlock()
-
-	if t, ok := cache[name]; ok {
-		return &GoNflTemplate{t: t}
-	}
-
+// Fetch constructs the requested template, applying the common base and navbar templates
+func Fetch(templatesDir, name string) *GoNflTemplate {
 	t := template.New("_base.html").Funcs(funcs)
 	t = template.Must(t.ParseFiles(templatesDir+"_base.html", templatesDir+"navbar.html", templatesDir+name))
-	cache[name] = t
 
 	return &GoNflTemplate{t: t}
 }

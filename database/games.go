@@ -5,111 +5,78 @@ import (
 	"time"
 )
 
-type Games struct {
-	Id        int64
-	WeekId    int64
-	Date      int64
-	HomeId    int64
-	AwayId    int64
-	HomeScore int
-	AwayScore int
+type Game struct {
+	Date             time.Time
+	Home             string
+	HomeNickname     string
+	HomeAbbreviation string
+	HomeScore        int
+	Away             string
+	AwayNickname     string
+	AwayAbbreviation string
+	AwayScore        int
 }
 
-func gamePickInfo(id int64) (awayId int64, homeId int64, time int64) {
-	row := db.QueryRow("SELECT away_id, home_id, date FROM games WHERE id = ?1", id)
-	err := row.Scan(&awayId, &homeId, &time)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return
-}
-
-func GamesBySeason(year int) []Games {
-	rows, err := db.Query(`SELECT games.id, games.week_id, games.date, games.home_id, games.away_id, games.home_score, games.away_score
-			       FROM games 
-			       JOIN weeks ON weeks.id = games.week_id
-			       JOIN years ON years.id = weeks.year_id
-			       WHERE years.year = ?1`, year)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	games := make([]Games, 0)
-	for rows.Next() {
-		tmp := Games{}
-		err := rows.Scan(&tmp.Id, &tmp.WeekId, &tmp.Date, &tmp.HomeId, &tmp.AwayId, &tmp.HomeScore, &tmp.AwayScore)
-		if err != nil {
-			log.Fatal(err)
-		}
-		games = append(games, tmp)
-	}
-
-	rows.Close()
-
-	return games
-}
-
-func WeeklyGames(year, week int) []Games {
-	sql := `SELECT games.id, games.week_id, games.date, games.home_id, games.away_id, games.home_score, games.away_score
+func WeeklyGames(year, week int) ([]Game, error) {
+	sql := `SELECT games.date, hometeam.city, hometeam.nickname, hometeam.abbreviation, games.home_score, awayteam.city, awayteam.nickname, awayteam.abbreviation, games.away_score
 		FROM games
 		JOIN weeks ON weeks.id = games.week_id
 		JOIN years ON years.id = weeks.year_id
-		WHERE year = ?1 AND week = ?2 ORDER BY date ASC, games.id ASC`
-
+		JOIN teams AS hometeam ON games.home_id = hometeam.id
+		JOIN teams AS awayteam ON games.away_id = awayteam.id
+		WHERE year = ?1 AND week = ?2 ORDER BY games.date ASC, games.id ASC`
 	rows, err := db.Query(sql, year, week)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("weekly games")
+		return nil, err
 	}
 
-	var games []Games
+	var games []Game
 	for rows.Next() {
-		tmp := Games{}
-		err := rows.Scan(&tmp.Id, &tmp.WeekId, &tmp.Date, &tmp.HomeId, &tmp.AwayId, &tmp.HomeScore, &tmp.AwayScore)
+		tmp := Game{}
+		var d int64
+		err := rows.Scan(&d, &tmp.Home, &tmp.HomeNickname, &tmp.HomeAbbreviation, &tmp.HomeScore, &tmp.Away, &tmp.AwayNickname, &tmp.AwayAbbreviation, &tmp.AwayScore)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
+		tmp.Date = time.Unix(d, 0)
 		games = append(games, tmp)
 	}
 
 	rows.Close()
 
-	return games
+	return games, nil
 }
 
-func GamesMap(games []Games) map[int64]Games {
-	gm := make(map[int64]Games)
-	for _, g := range games {
-		g := g
-		gm[g.Id] = g
-	}
+func UpdateScore(week int, year int, homeTeam string, homeScore int, awayScore int) error {
+	//sqlite3 makes this hard on us....so we have to do this in a couple of steps
+	sql := `SELECT games.id FROM games
+		JOIN weeks ON games.week_id = weeks.id
+		JOIN years ON weeks.year_id = years.id
+		JOIN teams ON games.home_id = teams.id
+		WHERE weeks.week = ?1 AND years.year = ?2 AND teams.nickname = ?3`
 
-	return gm
-}
-
-func UpdateScores(week int, year int, homeTeam string, homeScore int, awayScore int) error {
-	// Lookup the week ID
-	weekId, err := weekID(week, year)
+	var gameId int64
+	err := db.QueryRow(sql, week, year, homeTeam).Scan(&gameId)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Lookup the home team ID
-	var teamId int64
-	row := db.QueryRow("SELECT id FROM teams WHERE nickname = ?1", homeTeam)
-	err = row.Scan(&teamId)
-	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	_, err = db.Exec(`UPDATE games
-			      SET home_score = ?1, away_score = ?2
-			      WHERE week_id = ?3 AND home_id = ?4`, homeScore, awayScore, weekId, teamId)
+			  SET home_score = ?2, away_score = ?3
+			  WHERE id = ?1`, gameId, homeScore, awayScore)
 
 	return err
 }
 
-func nextSunday() int64 {
-	t := time.Now()
+func AddGame(date time.Time, homeTeam int, awayTeam int) error {
+	_, week, err := CurrentWeek(date)
+	if err != nil {
+		return err
+	}
 
-	return t.AddDate(0, 0, 7-int(t.Weekday())).Unix()
+	_, err = db.Exec(`INSERT INTO games(week_id, date, home_id, away_id)
+			 VALUES((SELECT weeks.id FROM weeks JOIN years ON weeks.year_id = years.id WHERE years.year = ?1 AND weeks.week = ?2), ?3, ?4, ?5)`, date.Year(), week, date.Unix(), homeTeam, awayTeam)
+
+	return err
 }

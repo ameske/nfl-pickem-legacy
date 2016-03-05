@@ -10,16 +10,17 @@ import (
 	"github.com/gorilla/context"
 )
 
-func AdminPickForm(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		processAdminPicksForm(w, r)
-	} else {
-		renderAdminPicksForm(w, r)
+func AdminPickForm(templatesDir string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			processAdminPicksForm(templatesDir, w, r)
+		} else {
+			renderAdminPicksForm(templatesDir, w, r)
+		}
 	}
-
 }
 
-func processAdminPicksForm(w http.ResponseWriter, r *http.Request) {
+func processAdminPicksForm(templatesDir string, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	ids := r.Form["ids"]
@@ -40,7 +41,7 @@ func processAdminPicksForm(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
-		err = database.MakePick(intID, int(selection), int(points))
+		err = database.AdminMakePick(intID, int(selection), int(points))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -48,11 +49,19 @@ func processAdminPicksForm(w http.ResponseWriter, r *http.Request) {
 
 	context.Set(r, "success", "Picks submitted succesfully!")
 
-	renderAdminPicksForm(w, r)
+	renderAdminPicksForm(templatesDir, w, r)
 }
 
-func renderAdminPicksForm(w http.ResponseWriter, r *http.Request) {
+func renderAdminPicksForm(templatesDir string, w http.ResponseWriter, r *http.Request) {
 	user, isAdmin := currentUser(r)
+	if user == "" {
+		http.Error(w, "no user information", http.StatusUnauthorized)
+		return
+	} else if !isAdmin {
+		http.Error(w, "admin only", http.StatusForbidden)
+		return
+
+	}
 
 	year, week := yearWeek(r)
 
@@ -80,5 +89,8 @@ func renderAdminPicksForm(w http.ResponseWriter, r *http.Request) {
 		rows,
 	}
 
-	Fetch("admin.html").Execute(w, user, isAdmin, data)
+	err := Fetch(templatesDir, "admin.html").Execute(w, user, isAdmin, data)
+	if err != nil {
+		log.Println(err)
+	}
 }

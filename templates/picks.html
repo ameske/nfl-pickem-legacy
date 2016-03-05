@@ -35,7 +35,7 @@
               <option value="1">{{.Away}} {{.AwayNick}}</option>
               <option value="2" selected="selected">{{.Home}} {{.HomeNick}}</option>
               {{else}}
-              <option value="0" selected="selected">--Winner--</option>
+              <option value="-1" selected="selected">--Winner--</option>
               <option value="1">{{.Away}} {{.AwayNick}}</option>
               <option value="2">{{.Home}} {{.HomeNick}}</option>
               {{end}}
@@ -79,9 +79,9 @@
 
 <!-- yeah we'll just shove this script in the middle because reasons -->
 <script>
-  var maxThrees = {{.Threes}};
-  var maxFives = {{.Fives}};
-  var maxSevens = {{.Sevens}};
+  var maxThrees = {{.Three}};
+  var maxFives = {{.Five}};
+  var maxSevens = {{.Seven}};
 
   function validate() {
     var ones = 0;
@@ -108,8 +108,6 @@
             break;
         }
     }
-
-    alert(ones + " " + threes + " " + fives + " " + sevens);
 
     if (threes > maxThrees || fives > maxFives || sevens > maxSevens) {
       var msg = "Your picks are invalid:\n";

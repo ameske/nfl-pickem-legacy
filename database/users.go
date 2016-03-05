@@ -1,7 +1,6 @@
 package database
 
 import (
-	"log"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -17,11 +16,11 @@ type Users struct {
 	Password  string
 }
 
-func IsAdmin(username string) (admin bool) {
+func IsAdmin(username string) (admin bool, err error) {
 	row := db.QueryRow("SELECT admin FROM users WHERE email = ?1", username)
-	err := row.Scan(&admin)
+	err = row.Scan(&admin)
 	if err != nil {
-		log.Fatal(err)
+		return false, err
 	}
 
 	return
@@ -30,7 +29,7 @@ func IsAdmin(username string) (admin bool) {
 func AddUser(u Users) error {
 	bpass, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Fatalf(err.Error())
+		return err
 	}
 	u.Password = string(bpass)
 
@@ -39,64 +38,60 @@ func AddUser(u Users) error {
 	return err
 }
 
-func AllUsers() []Users {
-	rows, err := db.Query("SELECT id, first_name, last_name, email, admin, last_login, password FROM users ORDER BY id ASC")
+func UserFirstNames() ([]string, error) {
+	rows, err := db.Query("SELECT first_name FROM users ORDER BY id ASC")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	users := make([]Users, 0)
+	users := make([]string, 0)
 	for rows.Next() {
-		tmp := Users{}
-		err := rows.Scan(&tmp.Id, &tmp.FirstName, &tmp.LastName, &tmp.Email, &tmp.Admin, &tmp.LastLogin, &tmp.Password)
+		var tmp string
+		err := rows.Scan(&tmp)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		users = append(users, tmp)
 	}
-
 	rows.Close()
 
-	return users
+	return users, nil
 }
 
-func UserId(username string) int64 {
-	var userId int64
-
-	row := db.QueryRow("SELECT id FROM users WHERE email = ?1", username)
-	err := row.Scan(&userId)
-
+func Usernames() ([]string, error) {
+	rows, err := db.Query("SELECT email FROM users ORDER BY id ASC")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return userId
+	users := make([]string, 0)
+	for rows.Next() {
+		var tmp string
+		err := rows.Scan(&tmp)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, tmp)
+	}
+	rows.Close()
+
+	return users, nil
 }
 
-func CheckCredentials(user string, password string) bool {
+func CheckCredentials(user string, password string) (bool, error) {
 	var storedPassword string
 	row := db.QueryRow("SELECT password FROM users WHERE email = ?1", user)
 	err := row.Scan(&storedPassword)
 	if err != nil {
-		log.Fatal(err)
+		return false, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(password))
 
-	return err == nil
+	return err == nil, nil
 }
 
 func UpdatePassword(user string, newPassword []byte) error {
 	_, err := db.Exec("UPDATE users SET password = ?1 WHERE email = ?2", string(newPassword), user)
 	return err
-}
-
-func UsersMap(users []Users) map[int64]Users {
-	um := make(map[int64]Users)
-	for _, u := range users {
-		u := u
-		um[u.Id] = u
-	}
-
-	return um
 }

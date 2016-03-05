@@ -1,7 +1,5 @@
 package database
 
-import "log"
-
 type StandingsPage struct {
 	User   string
 	Points int
@@ -10,7 +8,7 @@ type StandingsPage struct {
 
 // Standings returns the state of the pick-em pool as of the given week in the
 // requested year
-func Standings(year, week int) []*StandingsPage {
+func Standings(year, week int) ([]*StandingsPage, error) {
 	var sql string
 
 	// If it's the first week, we of course cannot deduct the lowest week yet
@@ -45,14 +43,14 @@ func Standings(year, week int) []*StandingsPage {
 
 	rows, err := db.Query(sql, year, week)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	for rows.Next() {
 		tmp := &StandingsPage{}
 		err := rows.Scan(&tmp.User, &tmp.Points)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		standings = append(standings, tmp)
 	}
@@ -73,5 +71,5 @@ func Standings(year, week int) []*StandingsPage {
 		s.Behind = max - s.Points
 	}
 
-	return standings
+	return standings, nil
 }
