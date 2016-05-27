@@ -94,3 +94,86 @@ func emptyStandings() ([]StandingsPage, error) {
 
 	return standings, nil
 }
+
+type WeekByWeekStandingsPage struct {
+	Name          string
+	Scores        []int
+	Total         int
+	AdjustedTotal int
+}
+
+type rawWeekByWeek struct {
+	Name   string
+	Week   int
+	Points int
+}
+
+// WeekByWeekStandings gathers information to show a standings page showing
+// weekly results in addition to the total.
+func WeekByWeekStandings(year, week int) ([]WeekByWeekStandingsPage, error) {
+	sql := `SELECT users.first_name, weeks.week, SUM(picks.points)
+		FROM picks
+		JOIN games ON games.id = picks.game_id
+		JOIN weeks ON weeks.id = games.week_id
+		JOIN years ON years.id = weeks.year_id
+		JOIN users ON users.id = picks.user_id
+		WHERE picks.correct = 1 AND years.year = ?1 AND weeks.week <= ?2
+		GROUP BY weeks.week, users.first_name;`
+
+	rows, err := db.Query(sql, year, week)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// This gives us a list of (User, Week, Points) for every user and every week
+	rawData := make([]rawWeekByWeek, 0)
+	for rows.Next() {
+		tmp := rawWeekByWeek{}
+		err := rows.Scan(&tmp.Name, &tmp.Week, &tmp.Points)
+		if err != nil {
+			return nil, err
+		}
+		rawData = append(rawData, tmp)
+	}
+
+	// Now we need to condense it into the format of WeekByWeekStandingsPage
+	standingsMap := make(map[string]*WeekByWeekStandingsPage, 0)
+	for _, r := range rawData {
+		wbwsp, ok := standingsMap[r.Name]
+		// This is our first time seeing this user
+		if !ok {
+			wbwsp = &WeekByWeekStandingsPage{Scores: make([]int, 0)}
+			wbwsp.Name = r.Name
+			standingsMap[r.Name] = wbwsp
+		}
+		wbwsp.Scores = append(wbwsp.Scores, r.Points)
+	}
+
+	// Now, order the week by week standings page from 1st to last
+	final := make([]WeekByWeekStandingsPage, 0)
+	for _, v := range standingsMap {
+		min := 9999
+		for _, s := range v.Scores {
+			if s <= min {
+				min = s
+			}
+			v.Total += s
+		}
+		v.AdjustedTotal = v.Total - min
+		final = append(final, *v)
+	}
+
+	for i := 0; i < len(final); i++ {
+		adjT := final[i].AdjustedTotal
+		for j := i + 1; j < len(final); j++ {
+			if adjT < final[j].AdjustedTotal {
+				tmp := final[i]
+				final[i] = final[j]
+				final[j] = tmp
+			}
+		}
+	}
+
+	return final, nil
+}

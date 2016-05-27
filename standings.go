@@ -28,3 +28,32 @@ func CurrentStandings(templatesDir string) http.HandlerFunc {
 		}
 	}
 }
+
+func WeekByWeekStandings(templatesDir string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u, a := currentUser(r)
+
+		year, week := yearWeek(r)
+
+		weeks := make([]int, 0, week)
+		for i := 1; i <= week; i++ {
+			weeks = append(weeks, i)
+		}
+
+		s, err := database.WeekByWeekStandings(year, week)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		tmp := struct {
+			CurrentWeek int
+			Weeks       []int
+			Users       []database.WeekByWeekStandingsPage
+		}{CurrentWeek: week, Weeks: weeks, Users: s}
+
+		err = Fetch(templatesDir, "weeklyStandings.html").Execute(w, u, a, tmp)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+}

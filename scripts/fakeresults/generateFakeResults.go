@@ -9,11 +9,13 @@ import (
 	"time"
 
 	"github.com/ameske/nfl-pickem/database"
+	"github.com/ameske/nfl-pickem/results"
 )
 
 func main() {
 	year := flag.Int("year", -1, "year")
 	week := flag.Int("week", -1, "week")
+	db := flag.String("db", "nfl-test.db", "path to test database")
 	thur := flag.Bool("thur", false, "generate result for thursday night game")
 	sun1 := flag.Bool("sun1", false, "generate results for sunday 1:00 games")
 	sun4 := flag.Bool("sun4", false, "generate results for sunday 4:00 games")
@@ -26,7 +28,7 @@ func main() {
 		log.Fatal("year and week required")
 	}
 
-	err := database.SetDefaultDb("nfl-test.db")
+	err := database.SetDefaultDb(*db)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,36 +38,36 @@ func main() {
 		log.Fatal(err)
 	}
 
-	results, err := os.Create("results.json")
+	res, err := os.Create("results.json")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer results.Close()
+	defer res.Close()
 
-	enc := json.NewEncoder(results)
+	enc := json.NewEncoder(res)
 
 	rand.Seed(time.Now().Unix())
 
-	rj := make([]ResultsJson, 0)
+	rj := make([]results.Result, 0)
 	for _, g := range games {
 		if *thur && g.Date.Weekday() == time.Thursday {
-			rj = append(rj, generateRandomResult(*year, *week, g.HomeNickname))
+			rj = append(rj, generateRandomResult(*year, *week, g.HomeNickname, g.AwayNickname))
 		}
 
 		if *sun1 && g.Date.Weekday() == time.Sunday && g.Date.Hour() == 13 {
-			rj = append(rj, generateRandomResult(*year, *week, g.HomeNickname))
+			rj = append(rj, generateRandomResult(*year, *week, g.HomeNickname, g.AwayNickname))
 		}
 
 		if *sun4 && g.Date.Weekday() == time.Sunday && g.Date.Hour() == 16 {
-			rj = append(rj, generateRandomResult(*year, *week, g.HomeNickname))
+			rj = append(rj, generateRandomResult(*year, *week, g.HomeNickname, g.AwayNickname))
 		}
 
 		if *sun8 && g.Date.Weekday() == time.Sunday && g.Date.Hour() == 20 {
-			rj = append(rj, generateRandomResult(*year, *week, g.HomeNickname))
+			rj = append(rj, generateRandomResult(*year, *week, g.HomeNickname, g.AwayNickname))
 		}
 
 		if *mon && g.Date.Weekday() == time.Monday {
-			rj = append(rj, generateRandomResult(*year, *week, g.HomeNickname))
+			rj = append(rj, generateRandomResult(*year, *week, g.HomeNickname, g.AwayNickname))
 		}
 	}
 
@@ -75,20 +77,11 @@ func main() {
 	}
 }
 
-type ResultsJson struct {
-	Week      int    `json:"week"`
-	Year      int    `json:"year"`
-	Home      string `json:"home"`
-	HomeScore int    `json:"home_score"`
-	AwayScore int    `json:"away_score"`
-}
-
-func generateRandomResult(year int, week int, home string) ResultsJson {
+func generateRandomResult(year int, week int, home string, away string) results.Result {
 	hscore, ascore := generateRandomScore()
 
-	return ResultsJson{
-		Week:      week,
-		Year:      year,
+	return results.Result{
+		Away:      away,
 		Home:      home,
 		HomeScore: hscore,
 		AwayScore: ascore,
