@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS teams (
 
 CREATE TABLE IF NOT EXISTS years (
     id integer PRIMARY KEY,
-    year integer NOT NULL UNIQUE
+    year integer NOT NULL UNIQUE,
     year_start integer NOT NULL
 );
 
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS weeks (
     id integer PRIMARY KEY,
     year_id integer REFERENCES years(id) ON DELETE CASCADE,
     pvs_id integer REFERENCES pvs(id),
-    week integer NOT NULL,
+    week integer NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS games (
