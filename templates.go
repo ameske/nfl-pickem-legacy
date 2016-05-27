@@ -9,19 +9,20 @@ import (
 	"github.com/ameske/nfl-pickem/database"
 )
 
-/*
-This file is built up from https://github.com/zeebo/gostbook/blob/master/template.go
-*/
-
 var funcs = template.FuncMap{
-	"reverse":  reverse,
 	"gametime": gametime,
+}
+
+func gametime(time time.Time) string {
+	return time.Format("Mon Jan 2 2006 15:04")
 }
 
 type GoNflTemplate struct {
 	t *template.Template
 }
 
+// Execute gathers data needed to construct the navbar, chains is to the current template, and
+// writes the output to the provided io.Writer.
 func (t *GoNflTemplate) Execute(w io.Writer, user string, admin bool, content interface{}) error {
 	inSeason := true
 
@@ -68,18 +69,4 @@ func Fetch(templatesDir, name string) *GoNflTemplate {
 	t = template.Must(t.ParseFiles(templatesDir+"_base.html", templatesDir+"navbar.html", templatesDir+name))
 
 	return &GoNflTemplate{t: t}
-}
-
-// reverse takes a string representing a named route and returns a url for said route
-func reverse(name string, params ...string) string {
-	url, err := router.GetRoute(name).URL(params...)
-	if err != nil {
-		log.Fatalf("reverse: %s", err.Error())
-	}
-
-	return url.Path
-}
-
-func gametime(time time.Time) string {
-	return time.Format("Mon Jan 2 2006 15:04")
 }

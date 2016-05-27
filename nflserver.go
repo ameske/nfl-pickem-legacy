@@ -256,7 +256,6 @@ func main() {
 	router.HandleFunc("/picks", AddUserInfo(RequireLogin(Picks(c.Server.TemplatesDir, n)), store))
 	router.HandleFunc("/admin/{year:[0-9]*}/{week:[0-9]*}", AddUserInfo(AdminOnly(AdminPickForm(c.Server.TemplatesDir)), store))
 	router.HandleFunc("/results/{year:[0-9]*}/{week:[0-9]*}", AddUserInfo(Results(c.Server.TemplatesDir), store))
-	router.HandleFunc("/standings/{year:[0-9]*}/{week:[0-9]*}", AddUserInfo(Standings(c.Server.TemplatesDir), store))
 	router.HandleFunc("/logo/{team:.*}", Logo(c.Server.LogosDir))
 
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
