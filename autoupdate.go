@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
 	"log"
 	"math"
-	"os/exec"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/ameske/nfl-pickem/database"
+	"github.com/ameske/nfl-pickem/results"
 )
 
 // scheduleUpdates sets up goroutines that will import the results of games and update the
@@ -84,7 +84,7 @@ func update(updatePreviousWeek bool) {
 		return
 	}
 
-	err = updateGameScores(results)
+	err = updateGameScores(year, week, results)
 	if err != nil {
 		log.Println(err)
 		return
@@ -105,35 +105,23 @@ type ResultsJson struct {
 	AwayScore int    `json:"away_score"`
 }
 
-func getGameResults(year, week int) ([]ResultsJson, error) {
-	cmd := exec.Command("weeklyScores", strconv.Itoa(year), strconv.Itoa(week))
-	pipe, err := cmd.StdoutPipe()
+func getGameResults(year, week int) ([]results.Result, error) {
+	url := fmt.Sprintf("http://www.nfl.com/schedules/%d/REG%d", year, week)
+
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	err = cmd.Start()
-	if err != nil {
-		return nil, err
-	}
+	p := results.NewParser(resp.Body)
 
-	var results []ResultsJson
-	err = json.NewDecoder(pipe).Decode(&results)
-	if err != nil {
-		return nil, err
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		return nil, err
-	}
-
-	return results, nil
+	return p.Parse()
 }
 
-func updateGameScores(results []ResultsJson) error {
+func updateGameScores(year int, week int, results []results.Result) error {
 	for _, result := range results {
-		err := database.UpdateScore(result.Week, result.Year, result.Home, result.HomeScore, result.AwayScore)
+		err := database.UpdateScore(week, year, result.Home, result.HomeScore, result.AwayScore)
 		if err != nil {
 			return err
 		}

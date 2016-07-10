@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/ameske/nfl-pickem/database"
+	"github.com/ameske/nfl-pickem/results"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -202,7 +203,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		var results []ResultsJson
+		var results []results.Result
 		err = json.NewDecoder(rfile).Decode(&results)
 		if err != nil {
 			log.Fatal(err)
@@ -210,12 +211,12 @@ func main() {
 
 		log.Println(results)
 
-		err = updateGameScores(results)
+		year, week, err := database.CurrentWeek(time.Now())
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		year, week, err := database.CurrentWeek(time.Now())
+		err = updateGameScores(year, week, results)
 		if err != nil {
 			log.Fatal(err)
 		}
