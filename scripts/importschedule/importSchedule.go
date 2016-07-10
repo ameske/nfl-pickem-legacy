@@ -31,7 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for week := 17; week <= 17; week++ {
+	for week := 1; week <= 17; week++ {
 		log.Println("Importing week", week)
 
 		b, err := getScheduleHTML(*year, week)
