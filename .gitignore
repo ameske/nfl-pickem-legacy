@@ -24,4 +24,5 @@ _testmain.go
 
 nfl-pickem
 *.db
+*.db.*
 results.json
