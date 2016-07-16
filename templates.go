@@ -29,7 +29,11 @@ func (t *GoNflTemplate) Execute(w io.Writer, user string, admin bool, content in
 	year, week, err := database.CurrentWeek(time.Now())
 	if err == database.ErrOffseason {
 		inSeason = false
-		week = 17
+		if database.PrevSeasonExists(time.Now().Year()) {
+			week = 17
+		} else {
+			week = 0
+		}
 	} else if err != nil {
 		log.Fatal(err)
 	}

@@ -15,6 +15,16 @@ const (
 	seasonLength = 17
 )
 
+func PrevSeasonExists(year int) bool {
+	var c int
+	err := db.QueryRow("SELECT COUNT(*) FROM years WHERE year = ?1", year-1).Scan(&c)
+	if err != nil {
+		return false
+	}
+
+	return c != 0
+}
+
 func currentSeasonStart(t time.Time) (start time.Time, err error) {
 	now := t.Unix()
 

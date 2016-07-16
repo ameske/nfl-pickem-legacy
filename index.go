@@ -10,7 +10,6 @@ import (
 
 func Index(templatesDir string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		u, a := currentUser(r)
 
 		// If we aren't in the offseason and a user is logged in,
