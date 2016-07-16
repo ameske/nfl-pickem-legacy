@@ -4,12 +4,48 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"os/exec"
 	"time"
 
 	"github.com/ameske/nfl-pickem/database"
+)
+
+var (
+	teams = map[int]string{
+		1:  "Ravens",
+		2:  "Bengals",
+		3:  "Browns",
+		4:  "Steelers",
+		5:  "Bears",
+		6:  "Lions",
+		7:  "Packers",
+		8:  "Vikings",
+		9:  "Texans",
+		10: "Colts",
+		11: "Jaguars",
+		12: "Titans",
+		13: "Falcons",
+		14: "Panthers",
+		15: "Saints",
+		16: "Buccaneers",
+		17: "Bills",
+		18: "Dolphins",
+		19: "Patriots",
+		20: "Jets",
+		21: "Cowboys",
+		22: "Giants",
+		23: "Eagles",
+		24: "Redskins",
+		25: "Broncos",
+		26: "Chiefs",
+		27: "Raiders",
+		28: "Chargers",
+		29: "Cardinals",
+		30: "Rams",
+		31: "49ers",
+		32: "Seahawks",
+	}
 )
 
 func main() {
@@ -87,12 +123,7 @@ func testWeekDate(t time.Time) time.Time {
 }
 
 func addGames(start time.Time, numGames int) error {
-	teams := rand.Perm(numGames * 2)
-	for i := 0; i < len(teams); i++ {
-		teams[i]++
-	}
-
-	curTeam := 0
+	curTeam := 1
 
 	// One game on Thursday
 	thur := nextDay(start, time.Thursday)
