@@ -18,7 +18,7 @@ func CurrentStandings(templatesDir string) http.HandlerFunc {
 		}
 
 		s, err := database.Standings(year, week)
-		if err != nil {
+		if err != nil && err != database.ErrNoStandings {
 			log.Fatal(err)
 		}
 

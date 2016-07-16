@@ -1,5 +1,11 @@
 package database
 
+import "errors"
+
+var (
+	ErrNoStandings = errors.New("no standings")
+)
+
 type StandingsPage struct {
 	User   string
 	Points int
@@ -8,7 +14,7 @@ type StandingsPage struct {
 
 // Standings returns the state of the pick-em pool as of the given week in the
 // requested year
-func Standings(year, week int) ([]*StandingsPage, error) {
+func Standings(year, week int) ([]StandingsPage, error) {
 	var sql string
 
 	// If it's the first week, we of course cannot deduct the lowest week yet
@@ -39,7 +45,7 @@ func Standings(year, week int) ([]*StandingsPage, error) {
 		GROUP BY temp.first_name ORDER BY points DESC`
 	}
 
-	standings := make([]*StandingsPage, 0)
+	standings := make([]StandingsPage, 0)
 
 	rows, err := db.Query(sql, year, week)
 	if err != nil {
@@ -47,7 +53,7 @@ func Standings(year, week int) ([]*StandingsPage, error) {
 	}
 
 	for rows.Next() {
-		tmp := &StandingsPage{}
+		tmp := StandingsPage{}
 		err := rows.Scan(&tmp.User, &tmp.Points)
 		if err != nil {
 			return nil, err
@@ -57,18 +63,33 @@ func Standings(year, week int) ([]*StandingsPage, error) {
 
 	rows.Close()
 
+	// Return just the users and 0 if there's nothing to pull out just yet
 	if len(standings) == 0 {
-		tmpStandings := &StandingsPage{
-			User:   "test",
-			Points: 0,
-		}
-		standings = []*StandingsPage{tmpStandings}
+		return emptyStandings()
 	}
 
 	max := standings[0].Points
 
 	for _, s := range standings {
 		s.Behind = max - s.Points
+	}
+
+	return standings, nil
+}
+
+func emptyStandings() ([]StandingsPage, error) {
+	standings := make([]StandingsPage, 0)
+
+	users, err := UserFirstNames()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, u := range users {
+		tmp := StandingsPage{}
+		tmp.User = u
+
+		standings = append(standings, tmp)
 	}
 
 	return standings, nil
