@@ -11,15 +11,21 @@ import (
 	"github.com/ameske/nfl-pickem/results"
 )
 
+func logNextScheduleUpdate(t time.Time) {
+	slog.Info("Scheduling update for " + t.Format(time.RFC1123))
+}
+
 // scheduleUpdates sets up goroutines that will import the results of games and update the
 // picks after every wave of games completes.
 func scheduleUpdates() {
 	// Friday at 8:00
 	go func() {
 		nextFriday := adjustIfPast(nextDay(time.Friday).Add(time.Hour * 8))
+		logNextScheduleUpdate(nextFriday)
 		time.Sleep(nextFriday.Sub(time.Now()))
 		for {
 			go update(false)
+			logNextScheduleUpdate(time.Now().AddDate(0, 0, 7))
 			time.Sleep(time.Hour * 24 * 7)
 		}
 	}()
@@ -27,9 +33,11 @@ func scheduleUpdates() {
 	// Sunday at 18:00
 	go func() {
 		nextSunday := adjustIfPast(nextDay(time.Sunday).Add(time.Hour * 18))
+		logNextScheduleUpdate(nextSunday)
 		time.Sleep(nextSunday.Sub(time.Now()))
 		for {
 			go update(false)
+			logNextScheduleUpdate(time.Now().AddDate(0, 0, 7))
 			time.Sleep(time.Hour * 24 * 7)
 		}
 	}()
@@ -37,9 +45,11 @@ func scheduleUpdates() {
 	// Sunday at 21:00
 	go func() {
 		nextSunday := adjustIfPast(nextDay(time.Sunday).Add(time.Hour * 21))
+		logNextScheduleUpdate(nextSunday)
 		time.Sleep(nextSunday.Sub(time.Now()))
 		for {
 			go update(false)
+			logNextScheduleUpdate(time.Now().AddDate(0, 0, 7))
 			time.Sleep(time.Hour * 24 * 7)
 		}
 	}()
@@ -47,9 +57,11 @@ func scheduleUpdates() {
 	// Monday at 8:00
 	go func() {
 		nextMonday := adjustIfPast(nextDay(time.Monday).Add(time.Hour * 8))
+		logNextScheduleUpdate(nextMonday)
 		time.Sleep(nextMonday.Sub(time.Now()))
 		for {
 			go update(false)
+			logNextScheduleUpdate(time.Now().AddDate(0, 0, 7))
 			time.Sleep(time.Hour * 24 * 7)
 		}
 	}()
@@ -57,9 +69,11 @@ func scheduleUpdates() {
 	// Tuesday at 8:00. Here we need to update the current week - 1
 	go func() {
 		nextTuesday := adjustIfPast(nextDay(time.Tuesday).Add(time.Hour * 8))
+		logNextScheduleUpdate(nextTuesday)
 		time.Sleep(nextTuesday.Sub(time.Now()))
 		for {
 			go update(true)
+			logNextScheduleUpdate(time.Now().AddDate(0, 0, 7))
 			time.Sleep(time.Hour * 24 * 7)
 		}
 	}()

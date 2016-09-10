@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"log/syslog"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -22,6 +23,7 @@ import (
 
 // For now, we will let all of these things be global since it's easier
 var (
+	slog   *syslog.Writer
 	router = mux.NewRouter()
 )
 
@@ -173,6 +175,12 @@ func main() {
 
 	flag.Parse()
 
+	var err error
+	slog, err = syslog.New(syslog.LOG_INFO|syslog.LOG_LOCAL0, "nfl-pickem")
+	if err != nil {
+		log.Fatal("Could not connect to syslog:", err)
+	}
+
 	var c config
 	var store sessions.Store
 
@@ -192,7 +200,7 @@ func main() {
 		c.Server.Database = *db
 	}
 
-	err := database.SetDefaultDb(c.Server.Database)
+	err = database.SetDefaultDb(c.Server.Database)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -248,7 +256,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//scheduleUpdates()
+	scheduleUpdates()
 
 	router.HandleFunc("/", AddUserInfo(Index(c.Server.TemplatesDir), store))
 	router.HandleFunc("/login", Login(c.Server.TemplatesDir, store))
