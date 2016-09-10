@@ -69,14 +69,20 @@ func UpdateScore(week int, year int, homeTeam string, homeScore int, awayScore i
 	return err
 }
 
-func AddGame(date time.Time, homeTeam string, awayTeam string) error {
+func AddGame(date time.Time, homeTeam string, awayTeam string, wk17splitYear bool) error {
 	_, week, err := CurrentWeek(date)
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec(`INSERT INTO games(week_id, date, home_id, away_id)
+	if wk17splitYear {
+		_, err = db.Exec(`INSERT INTO games(week_id, date, home_id, away_id)
+			 VALUES((SELECT weeks.id FROM weeks JOIN years ON weeks.year_id = years.id WHERE years.year = ?1 AND weeks.week = ?2), ?3, (SELECT id FROM teams WHERE nickname = ?4), (SELECT id FROM teams WHERE nickname = ?5))`, date.Year()-1, week, date.Unix(), homeTeam, awayTeam)
+	} else {
+		_, err = db.Exec(`INSERT INTO games(week_id, date, home_id, away_id)
 			 VALUES((SELECT weeks.id FROM weeks JOIN years ON weeks.year_id = years.id WHERE years.year = ?1 AND weeks.week = ?2), ?3, (SELECT id FROM teams WHERE nickname = ?4), (SELECT id FROM teams WHERE nickname = ?5))`, date.Year(), week, date.Unix(), homeTeam, awayTeam)
+
+	}
 
 	return err
 }
