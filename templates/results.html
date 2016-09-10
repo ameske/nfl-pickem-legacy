@@ -15,11 +15,11 @@
             <td>{{.Matchup}}</td>
             {{range .Picks}}
                 {{if eq .Status 0}}
-                <td class="success">{{.Pick}} {{if eq .Points 1}}{{else}}({{.Points}}){{end}}</td>
+                <td class="success">{{.Pick}} {{if eq .Points 1}}{{else}} ({{.Points}}){{end}}</td>
                 {{else if eq .Status 1}}
-                <td class="danger">{{.Pick}} {{if eq .Points 1}}{{else}}({{.Points}}){{end}}</td>
+                <td class="danger">{{.Pick}} {{if eq .Points 1}}{{else}} ({{.Points}}){{end}}</td>
                 {{else}}
-                <td>{{.Pick}}{{if eq .Points 0}}{{else if eq .Points 1}}{{else}}({{.Points}}){{end}}</td>
+                <td>{{.Pick}}{{if eq .Points 0}}{{else if eq .Points 1}}{{else}} ({{.Points}}){{end}}</td>
                 {{end}}
             {{end}}
         </tr>
