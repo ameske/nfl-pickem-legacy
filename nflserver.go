@@ -172,6 +172,9 @@ func main() {
 	debug := flag.Bool("debug", false, "used when running the server out of the source repo")
 	db := flag.String("db", "", "override the configuration database")
 	runUpdate := flag.String("update", "", "update scores and results using given results JSON file")
+	gradeOnly := flag.Bool("grade", false, "don't run in daemon mode and just grade the given year and week")
+	year := flag.Int("year", -1, "year for batch processing mode")
+	week := flag.Int("week", -1, "week for batch processing mode")
 
 	flag.Parse()
 
@@ -206,34 +209,19 @@ func main() {
 	}
 
 	if *runUpdate != "" {
-		rfile, err := os.Open(*runUpdate)
+		debugRunUpdate(*runUpdate)
+		return
+	}
+
+	if *gradeOnly {
+		if *year == -1 || *week == -1 {
+			log.Fatal("year and week required for batch mode")
+		}
+
+		err := grade(*year, *week)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		var results []results.Result
-		err = json.NewDecoder(rfile).Decode(&results)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.Println(results)
-
-		year, week, err := database.CurrentWeek(time.Now())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = updateGameScores(year, week, results)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = grade(year, week)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		return
 	}
 
@@ -270,4 +258,36 @@ func main() {
 
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
 	log.Fatal(http.ListenAndServe("0.0.0.0:61389", router))
+}
+
+func debugRunUpdate(updateFile string) {
+	rfile, err := os.Open(updateFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var results []results.Result
+	err = json.NewDecoder(rfile).Decode(&results)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(results)
+
+	year, week, err := database.CurrentWeek(time.Now())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = updateGameScores(year, week, results)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = grade(year, week)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return
 }
