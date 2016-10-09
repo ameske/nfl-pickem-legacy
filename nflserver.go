@@ -184,6 +184,8 @@ func main() {
 		log.Fatal("Could not connect to syslog:", err)
 	}
 
+	log.SetOutput(slog)
+
 	var c config
 	var store sessions.Store
 
