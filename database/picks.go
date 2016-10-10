@@ -25,11 +25,10 @@ func UserPicksByWeek(username string, year int, week int) ([]Picks, error) {
 		JOIN weeks ON weeks.id = games.week_id
 		JOIN years ON years.id = weeks.year_id
 		JOIN users ON users.id = picks.user_id
-		WHERE years.year = ?1 AND weeks.week = ?2 AND users.email = ?3 AND games.date < ?3
+		WHERE years.year = ?1 AND weeks.week = ?2 AND users.email = ?3
 		ORDER BY games.date, games.id ASC`
 
-	now := time.Now().Unix()
-	rows, err := db.Query(sql, year, week, username, now)
+	rows, err := db.Query(sql, year, week, username)
 	if err != nil {
 		log.Println("User picks by week")
 		return nil, err
