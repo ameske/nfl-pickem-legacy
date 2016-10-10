@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ameske/nfl-pickem/database"
 )
@@ -84,6 +85,11 @@ func GenerateResultsData(year int, week int) (*ResultsTemplateData, error) {
 	// Build each row of the table, where each row represents one game and all of the user's picks for that game
 	rows := make([]ResultsTableRow, len(games))
 	for i, g := range games {
+
+		if time.Now().Before(g.Date) {
+			continue
+		}
+
 		tr := ResultsTableRow{
 			Matchup: fmt.Sprintf("%s/%s", g.AwayAbbreviation, g.HomeAbbreviation),
 			Picks:   make([]UserPicks, len(users)),
