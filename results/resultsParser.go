@@ -32,6 +32,7 @@ func NewParser(r io.Reader) *Parser {
 	}
 }
 
+// Parse finds all the results for games that have finished in the given week the parser is set to.
 func (p *Parser) Parse() ([]Result, error) {
 	results := make([]Result, 0)
 
@@ -44,8 +45,7 @@ func (p *Parser) Parse() ([]Result, error) {
 
 		awayScoreStr, err := p.extractNodeText(AwayTeamScore)
 		if err != nil {
-			log.Println("Couldn't find away team score")
-			return nil, err
+			continue
 		}
 		awayScore, err := strconv.ParseInt(awayScoreStr, 10, 64)
 		if err != nil {
@@ -54,8 +54,7 @@ func (p *Parser) Parse() ([]Result, error) {
 
 		homeScoreStr, err := p.extractNodeText(HomeTeamScore)
 		if err != nil {
-			log.Println("Couldn't find home team score")
-			return nil, err
+			continue
 		}
 		homeScore, err := strconv.ParseInt(homeScoreStr, 10, 64)
 		if err != nil {
