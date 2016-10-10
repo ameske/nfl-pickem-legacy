@@ -70,8 +70,8 @@ func Standings(year, week int) ([]StandingsPage, error) {
 
 	max := standings[0].Points
 
-	for _, s := range standings {
-		s.Behind = max - s.Points
+	for i, s := range standings {
+		standings[i].Behind = max - s.Points
 	}
 
 	return standings, nil
