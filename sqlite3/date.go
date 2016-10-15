@@ -1,13 +1,8 @@
-package database
+package sqlite3
 
 import (
 	"database/sql"
-	"errors"
 	"time"
-)
-
-var (
-	ErrOffseason = errors.New("offsesaon")
 )
 
 const (
@@ -15,17 +10,28 @@ const (
 	seasonLength = 17
 )
 
-func PrevSeasonExists(year int) bool {
-	var c int
-	err := db.QueryRow("SELECT COUNT(*) FROM years WHERE year = ?1", year-1).Scan(&c)
+func (db Datastore) CurrentWeek(t time.Time) (year int, week int, err error) {
+	/*
+		The season starts on the Tuesday before the first game.
+		To figure out what week we are in, calculate where we are from there.
+	*/
+	start, err := db.currentSeasonStart(t)
 	if err != nil {
-		return false
+		return -1, -1, err
 	}
 
-	return c != 0
+	d := t.Sub(start)
+
+	week = int(d/oneWeek) + 1
+
+	if week > seasonLength {
+		return start.Year(), -1, nil
+	}
+
+	return start.Year(), week, nil
 }
 
-func currentSeasonStart(t time.Time) (start time.Time, err error) {
+func (db Datastore) currentSeasonStart(t time.Time) (start time.Time, err error) {
 	now := t.Unix()
 
 	var s sql.NullInt64
@@ -53,34 +59,7 @@ func currentSeasonStart(t time.Time) (start time.Time, err error) {
 	}
 }
 
-func CurrentWeek(t time.Time) (year int, week int, err error) {
-	/*
-		The season starts on the Tuesday before the first game.
-		To figure out what week we are in, calculate where we are from there.
-	*/
-	start, err := currentSeasonStart(t)
-	if err != nil {
-		return -1, -1, err
-	}
-
-	d := t.Sub(start)
-
-	week = int(d/oneWeek) + 1
-
-	if week > seasonLength {
-		return start.Year(), -1, ErrOffseason
-	}
-
-	return start.Year(), week, nil
-}
-
-func IsOffseason(t time.Time) bool {
-	_, _, err := CurrentWeek(t)
-
-	return err == ErrOffseason
-}
-
-func AddWeek(year int, week int, numGames int) error {
+func (db Datastore) AddWeek(year int, week int, numGames int) error {
 	pvs := ""
 	switch numGames {
 	case 16:
@@ -98,7 +77,7 @@ func AddWeek(year int, week int, numGames int) error {
 	return err
 }
 
-func AddYear(year int, yearStart int) error {
+func (db Datastore) AddYear(year int, yearStart int) error {
 	_, err := db.Exec("INSERT INTO years(year, year_start) VALUES(?1, ?2)", year, yearStart)
 
 	return err

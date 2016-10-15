@@ -1,8 +1,8 @@
-package database
+package sqlite3
 
 import "database/sql"
 
-func teamRecord(city string, nickname string) (wins int, losses int, err error) {
+func (db Datastore) teamRecord(city string, nickname string) (wins int, losses int, err error) {
 	// If somebody doesn't have any wins or losses, we have trouble coming up with their record all at once.
 	// For now, until I figure out what I'm doing wrong, calculate it individually.
 	var homeWins, homeLosses, awayWins, awayLosses int

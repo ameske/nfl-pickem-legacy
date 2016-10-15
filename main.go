@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"log/syslog"
@@ -12,28 +13,27 @@ import (
 	"net/http/httputil"
 	"os"
 	"strconv"
-	"time"
 
-	"github.com/ameske/nfl-pickem/database"
-	"github.com/ameske/nfl-pickem/results"
+	"github.com/ameske/nfl-pickem/api"
+	"github.com/ameske/nfl-pickem/jsonhttp"
+	"github.com/ameske/nfl-pickem/sqlite3"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/husobee/vestigo"
 )
 
 // For now, we will let all of these things be global since it's easier
 var (
-	slog   *syslog.Writer
-	router = mux.NewRouter()
+	slog *syslog.Writer
 )
 
 type config struct {
 	Server struct {
-		AuthKey      string `json:"authKey"`
-		EncryptKey   string `json:"encryptKey"`
-		Database     string `json:"databaseFile"`
-		TemplatesDir string `json:"templatesDirectory"`
-		LogosDir     string `json:"logosDirectory"`
+		AuthKey    string `json:"authKey"`
+		EncryptKey string `json:"encryptKey"`
+		Database   string `json:"databaseFile"`
+		LogosDir   string `json:"logosDirectory"`
 	} `json:"server"`
 	Email struct {
 		Enabled     bool   `json:"enabled"`
@@ -72,14 +72,8 @@ func RequireLogin(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := context.Get(r, "user").(string)
 		if ok && u != "" {
-			if r.URL.String() == "/login" {
-				http.Redirect(w, r, "/", 302)
-			} else {
-				h(w, r)
-			}
-		} else {
-			context.Set(r, "next", r.URL.String())
-			http.Redirect(w, r, "/login", 302)
+			jsonhttp.WriteError(w, http.StatusUnauthorized, "unauthorized")
+			return
 		}
 	}
 }
@@ -100,11 +94,13 @@ func AdminOnly(h http.HandlerFunc) http.HandlerFunc {
 
 		user, ok := u.(string)
 		if !ok {
+			log.Println("Could not cast user to string when checking admin only")
 			http.Error(w, "", http.StatusInternalServerError)
 		}
 
 		isAdmin, ok := a.(bool)
 		if !ok {
+			log.Println("Could not cast admin to bool when checking admin only")
 			http.Error(w, "", http.StatusInternalServerError)
 		}
 
@@ -170,11 +166,13 @@ func dumpRequest(h http.HandlerFunc) http.HandlerFunc {
 func main() {
 	configFile := flag.String("config", "/opt/ameske/gonfl/conf.json", "Path to server config file")
 	debug := flag.Bool("debug", false, "used when running the server out of the source repo")
-	db := flag.String("db", "", "override the configuration database")
-	runUpdate := flag.String("update", "", "update scores and results using given results JSON file")
-	gradeOnly := flag.Bool("grade", false, "don't run in daemon mode and just grade the given year and week")
-	year := flag.Int("year", -1, "year for batch processing mode")
-	week := flag.Int("week", -1, "week for batch processing mode")
+	dbFile := flag.String("db", "", "override the configuration database")
+	/*
+		runUpdate := flag.String("update", "", "update scores and results using given results JSON file")
+		gradeOnly := flag.Bool("grade", false, "don't run in daemon mode and just grade the given year and week")
+		year := flag.Int("year", -1, "year for batch processing mode")
+		week := flag.Int("week", -1, "week for batch processing mode")
+	*/
 
 	flag.Parse()
 
@@ -184,112 +182,62 @@ func main() {
 		log.Fatal("Could not connect to syslog:", err)
 	}
 
-	log.SetOutput(slog)
-
 	var c config
-	var store sessions.Store
+	// var store sessions.Store
 
 	if !*debug {
 		c = loadConfig(*configFile)
+		log.SetOutput(slog)
 	} else {
+		log.SetOutput(io.MultiWriter(slog, os.Stdout))
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 		c.Server.AuthKey = base64.StdEncoding.EncodeToString([]byte("something secret"))
 		c.Server.EncryptKey = base64.StdEncoding.EncodeToString([]byte("something secret"))
 		c.Server.Database = "nfl.db"
-		c.Server.TemplatesDir = "/Users/ameske/Documents/go/src/github.com/ameske/nfl-pickem/templates/"
 		c.Server.LogosDir = "/Users/ameske/Documents/go/src/github.com/ameske/nfl-pickem/logos"
 		c.Email.Enabled = false
 	}
 
-	if *db != "" {
-		c.Server.Database = *db
+	if *dbFile != "" {
+		c.Server.Database = *dbFile
 	}
 
-	err = database.SetDefaultDb(c.Server.Database)
+	db, err := sqlite3.NewDatastore(c.Server.Database)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if *runUpdate != "" {
-		debugRunUpdate(*runUpdate)
-		return
-	}
+	/*
+			var n Notifier
+			if c.Email.Enabled {
+				n, err = NewEmailNotifier(c.Email.SMTPAddress, c.Email.Sender, c.Email.Password)
+				if err != nil {
+					n = nullNotifier{}
+				}
 
-	if *gradeOnly {
-		if *year == -1 || *week == -1 {
-			log.Fatal("year and week required for batch mode")
-		}
+			} else if *debug {
+				n = fsNotifier{}
+			} else {
 
-		err := grade(*year, *week)
+				n = nullNotifier{}
+			}
+
+		store, err = configureSessionStore(c.Server.AuthKey, c.Server.EncryptKey)
 		if err != nil {
 			log.Fatal(err)
 		}
-		return
-	}
 
-	var n Notifier
-	if c.Email.Enabled {
-		n, err = NewEmailNotifier(c.Email.SMTPAddress, c.Email.Sender, c.Email.Password)
-		if err != nil {
-			n = nullNotifier{}
-		}
+		scheduleUpdates()
+	*/
 
-	} else if *debug {
-		n = fsNotifier{}
-	} else {
+	router := vestigo.NewRouter()
 
-		n = nullNotifier{}
-	}
-
-	store, err = configureSessionStore(c.Server.AuthKey, c.Server.EncryptKey)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	scheduleUpdates()
-
-	router.HandleFunc("/", AddUserInfo(Index(c.Server.TemplatesDir), store))
-	router.HandleFunc("/login", Login(c.Server.TemplatesDir, store))
-	router.HandleFunc("/logout", Logout(store))
-	router.HandleFunc("/changePassword", AddUserInfo(RequireLogin(ChangePassword(c.Server.TemplatesDir)), store))
-	router.HandleFunc("/picks", AddUserInfo(RequireLogin(Picks(c.Server.TemplatesDir, n)), store))
-	router.HandleFunc("/admin/{year:[0-9]*}/{week:[0-9]*}", AddUserInfo(AdminOnly(AdminPickForm(c.Server.TemplatesDir)), store))
-	router.HandleFunc("/results/{year:[0-9]*}/{week:[0-9]*}", AddUserInfo(Results(c.Server.TemplatesDir), store))
-	router.HandleFunc("/standings/{year:[0-9]*}/{week:[0-9]*}", AddUserInfo(WeekByWeekStandings(c.Server.TemplatesDir), store))
-	router.HandleFunc("/logo/{team:.*}", Logo(c.Server.LogosDir))
+	router.Get("/current", api.CurrentWeek(db))
+	router.Get("/games", api.Games(db))
+	router.Get("/picks", api.GetPicks(db))
+	router.Get("/results", api.Results(db))
+	router.Get("/totals", api.WeeklyTotals(db))
 
 	log.Printf("NFL Pick-Em Pool listening on port 61389")
 	log.Fatal(http.ListenAndServe("0.0.0.0:61389", router))
-}
-
-func debugRunUpdate(updateFile string) {
-	rfile, err := os.Open(updateFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var results []results.Result
-	err = json.NewDecoder(rfile).Decode(&results)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println(results)
-
-	year, week, err := database.CurrentWeek(time.Now())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = updateGameScores(year, week, results)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = grade(year, week)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return
 }

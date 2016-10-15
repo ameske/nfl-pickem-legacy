@@ -9,20 +9,20 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/ameske/nfl-pickem/database"
+	"github.com/ameske/nfl-pickem/api"
 )
 
 type Notifier interface {
-	Notify(to string, week int, picks []database.SelectedPicks)
+	Notify(to string, week int, picks []api.Pick)
 }
 
 type nullNotifier struct{}
 
-func (n nullNotifier) Notify(to string, week int, picks []database.SelectedPicks) {}
+func (n nullNotifier) Notify(to string, week int, picks []api.Pick) {}
 
 type fsNotifier struct{}
 
-func (n fsNotifier) Notify(to string, week int, picks []database.SelectedPicks) {
+func (n fsNotifier) Notify(to string, week int, picks []api.Pick) {
 	fd, err := os.Create(fmt.Sprintf("%s-%d.txt", to, week))
 	if err != nil {
 		log.Println(err)
@@ -40,7 +40,7 @@ func (n fsNotifier) Notify(to string, week int, picks []database.SelectedPicks) 
 		From    string
 		Subject string
 		Week    int
-		Picks   []database.SelectedPicks
+		Picks   []api.Pick
 	}{
 		to, "debugserver", fmt.Sprintf("Week %d Picks", week), week, picks,
 	}
@@ -80,13 +80,13 @@ func NewEmailNotifier(server, sendAsAddress, password string) (Notifier, error) 
 	return emailNotifier{auth: a, sender: sendAsAddress, smtpServer: addr, smtpServerPort: port, et: et}, nil
 }
 
-func (e emailNotifier) Notify(to string, week int, picks []database.SelectedPicks) {
+func (e emailNotifier) Notify(to string, week int, picks []api.Pick) {
 	pe := struct {
 		To      string
 		From    string
 		Subject string
 		Week    int
-		Picks   []database.SelectedPicks
+		Picks   []api.Pick
 	}{
 		to, e.sender, fmt.Sprintf("Week %d Picks", week), week, picks,
 	}
@@ -112,7 +112,7 @@ Here are the picks that I currently have recorded in my system for Week {{.Week}
 Please double-check and make sure there are no errors. E-mail me if you find any problems.
 
 {{range .Picks}}
-{{.AwayNick}}/{{.HomeNick}} - {{if eq .Selection 1}}{{.AwayNick}}{{else}}{{.HomeNick}}{{end}} {{.Points}}
+{{.AwayNickname}}/{{.HomeNick}} - {{if eq .Selection 1}}{{.AwayNickname}}{{else}}{{.HomeNickname}}{{end}} {{.Points}}
 {{end}}
 
 Good luck!

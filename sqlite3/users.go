@@ -1,22 +1,12 @@
-package database
+package sqlite3
 
 import (
-	"time"
+	"errors"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Users struct {
-	Id        int64
-	FirstName string
-	LastName  string
-	Email     string
-	Admin     bool
-	LastLogin time.Time
-	Password  string
-}
-
-func IsAdmin(username string) (admin bool, err error) {
+func (db Datastore) IsAdmin(username string) (admin bool, err error) {
 	row := db.QueryRow("SELECT admin FROM users WHERE email = ?1", username)
 	err = row.Scan(&admin)
 	if err != nil {
@@ -26,19 +16,7 @@ func IsAdmin(username string) (admin bool, err error) {
 	return
 }
 
-func AddUser(u Users) error {
-	bpass, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	u.Password = string(bpass)
-
-	_, err = db.Exec("INSERT INTO users(first_name, last_name, email, admin, last_login, password) VALUES(?1, ?2, ?3, ?4, ?5, ?6)", u.FirstName, u.LastName, u.Email, u.Admin, u.LastLogin, u.Password)
-
-	return err
-}
-
-func UserFirstNames() ([]string, error) {
+func (db Datastore) UserFirstNames() ([]string, error) {
 	rows, err := db.Query("SELECT first_name FROM users ORDER BY id ASC")
 	if err != nil {
 		return nil, err
@@ -58,7 +36,7 @@ func UserFirstNames() ([]string, error) {
 	return users, nil
 }
 
-func Usernames() ([]string, error) {
+func (db Datastore) Usernames() ([]string, error) {
 	rows, err := db.Query("SELECT email FROM users ORDER BY id ASC")
 	if err != nil {
 		return nil, err
@@ -78,7 +56,7 @@ func Usernames() ([]string, error) {
 	return users, nil
 }
 
-func CheckCredentials(user string, password string) (bool, error) {
+func (db Datastore) CheckCredentials(user string, password string) (bool, error) {
 	var storedPassword string
 	row := db.QueryRow("SELECT password FROM users WHERE email = ?1", user)
 	err := row.Scan(&storedPassword)
@@ -91,7 +69,14 @@ func CheckCredentials(user string, password string) (bool, error) {
 	return err == nil, nil
 }
 
-func UpdatePassword(user string, newPassword []byte) error {
-	_, err := db.Exec("UPDATE users SET password = ?1 WHERE email = ?2", string(newPassword), user)
+func (db Datastore) UpdatePassword(user string, oldPassword string, newPassword string) error {
+	ok, err := db.CheckCredentials(user, oldPassword)
+	if err != nil {
+		return err
+	} else if !ok {
+		return errors.New("unauthorized")
+	}
+
+	_, err = db.Exec("UPDATE users SET password = ?1 WHERE email = ?2", string(newPassword), user)
 	return err
 }

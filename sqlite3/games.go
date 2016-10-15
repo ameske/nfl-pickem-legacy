@@ -1,54 +1,54 @@
-package database
+package sqlite3
 
 import (
-	"log"
 	"time"
+
+	"github.com/ameske/nfl-pickem/api"
 )
 
-type Game struct {
-	Date             time.Time
-	Home             string
-	HomeNickname     string
-	HomeAbbreviation string
-	HomeScore        int
-	Away             string
-	AwayNickname     string
-	AwayAbbreviation string
-	AwayScore        int
+func (db Datastore) WeekGames(year int, week int) ([]api.Game, error) {
+	return db.games(year, week, week)
 }
 
-func WeeklyGames(year, week int) ([]Game, error) {
-	sql := `SELECT games.date, hometeam.city, hometeam.nickname, hometeam.abbreviation, games.home_score, awayteam.city, awayteam.nickname, awayteam.abbreviation, games.away_score
-		FROM games
-		JOIN weeks ON weeks.id = games.week_id
-		JOIN years ON years.id = weeks.year_id
-		JOIN teams AS hometeam ON games.home_id = hometeam.id
-		JOIN teams AS awayteam ON games.away_id = awayteam.id
-		WHERE year = ?1 AND week = ?2 ORDER BY games.date ASC, games.id ASC`
-	rows, err := db.Query(sql, year, week)
+func (db Datastore) CumulativeGames(year int, week int) ([]api.Game, error) {
+	return db.games(year, 1, week)
+}
+
+func (db Datastore) games(year int, minWeek int, maxWeek int) ([]api.Game, error) {
+	sql := `SELECT years.year, weeks.week, games.date, home.city, home.nickname, away.city, away.nickname, games.home_score, games.away_score
+	    FROM games
+	    JOIN teams AS home ON games.home_id = home.id
+	    JOIN teams AS away ON games.away_id = away.id
+	    JOIN weeks ON games.week_id = weeks.id
+	    JOIN years ON weeks.year_id = years.id
+	    WHERE years.year = ?1 AND weeks.week >= ?2 AND weeks.week <= ?3`
+
+	rows, err := db.Query(sql, year, minWeek, maxWeek)
 	if err != nil {
-		log.Println("weekly games")
 		return nil, err
 	}
+	defer rows.Close()
 
-	var games []Game
+	games := make([]api.Game, 0)
+
 	for rows.Next() {
-		tmp := Game{}
+		var tmp api.Game
 		var d int64
-		err := rows.Scan(&d, &tmp.Home, &tmp.HomeNickname, &tmp.HomeAbbreviation, &tmp.HomeScore, &tmp.Away, &tmp.AwayNickname, &tmp.AwayAbbreviation, &tmp.AwayScore)
+
+		err := rows.Scan(&tmp.Year, &tmp.Week, &d, &tmp.HomeCity, &tmp.HomeNickname, &tmp.AwayCity, &tmp.AwayNickname, &tmp.HomeScore, &tmp.AwayScore)
 		if err != nil {
 			return nil, err
 		}
+
 		tmp.Date = time.Unix(d, 0)
+
 		games = append(games, tmp)
 	}
-
-	rows.Close()
 
 	return games, nil
 }
 
-func UpdateScore(week int, year int, homeTeam string, homeScore int, awayScore int) error {
+func (db Datastore) UpdateScore(week int, year int, homeTeam string, homeScore int, awayScore int) error {
 	//sqlite3 makes this hard on us....so we have to do this in a couple of steps
 	sql := `SELECT games.id FROM games
 		JOIN weeks ON games.week_id = weeks.id
@@ -69,8 +69,8 @@ func UpdateScore(week int, year int, homeTeam string, homeScore int, awayScore i
 	return err
 }
 
-func AddGame(date time.Time, homeTeam string, awayTeam string, wk17splitYear bool) error {
-	_, week, err := CurrentWeek(date)
+func (db Datastore) AddGame(date time.Time, homeTeam string, awayTeam string, wk17splitYear bool) error {
+	_, week, err := db.CurrentWeek(date)
 	if err != nil {
 		return err
 	}

@@ -59,9 +59,8 @@ CREATE TABLE IF NOT EXISTS picks (
     id integer PRIMARY KEY,
     user_id integer REFERENCES users(id),
     game_id integer REFERENCES games(id),
-    selection integer DEFAULT -1,
+    selection integer REFERENCES teams(id) DEFAULT NULL,
     points integer DEFAULT 0, 
-    correct boolean DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS statistics (
