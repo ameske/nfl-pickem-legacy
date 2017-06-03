@@ -1,6 +1,8 @@
 go_nfl
 ======
 
+NOTE: This is my first attempt at making the NFL pickem' pool. It's a completely server side application. I have abandoned maintaining this version of the application in favor of splitting the app into a RESTful API and a completely independent front end. Since the architecture is completely distinct, and the git history is not relevant any more to the new version, I have decided to split the respositories rather than maintain a legacy branch. www.github.com/ameske/nfl-pickem will refer to the new version of the application.
+
 A customized NFL Pick-Em Pool manager written in Go.
 
 There weren't any pick-em managers that gave the ability to set up customized scoring. This is an automated
